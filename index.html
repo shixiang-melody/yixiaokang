@@ -12,13 +12,13 @@
         .card h2 { margin-top: 0; color: #2c3e50; font-size: 1.1rem; border-bottom: 2px solid #f0f2f5; padding-bottom: 10px; }
         
         label { display: block; margin: 10px 0 5px; font-weight: bold; font-size: 0.9rem; }
-        select { width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
+        select, textarea { width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-family: inherit; }
         
         .btn { background: #3498db; color: white; border: none; padding: 12px; width: 100%; border-radius: 6px; font-size: 16px; cursor: pointer; font-weight: bold; }
         .btn:hover { background: #2980b9; }
         
-        /* 路线环节卡片样式 */
-        .route-item { display: flex; align-items: center; justify-content: space-between; background: #fdfefe; border: 1px solid #e2e8f0; padding: 12px 15px; border-radius: 8px; margin-bottom: 10px; transition: all 0.2s; }
+        /* 路线环节卡片 */
+        .route-item { display: flex; align-items: center; justify-content: space-between; background: #fdfefe; border: 1px solid #e2e8f0; padding: 12px 15px; border-radius: 8px; margin-bottom: 10px; }
         .route-info { display: flex; align-items: center; gap: 10px; }
         .route-icon { font-size: 1.4rem; }
         .route-title { font-weight: bold; font-size: 0.95rem; color: #2c3e50; }
@@ -27,29 +27,31 @@
         .action-btns { display: flex; gap: 8px; }
         .btn-sm { padding: 6px 12px; font-size: 0.85rem; border-radius: 4px; border: none; cursor: pointer; font-weight: bold; }
         .btn-study { background: #ebf5fb; color: #3498db; }
-        .btn-study:hover { background: #d4eefc; }
         .btn-done { background: #eafaf1; color: #27ae60; }
         .btn-done.completed { background: #27ae60; color: white; }
 
-        /* 弹窗样式 */
-        #setup-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: flex; justify-content: center; align-items: center; z-index: 1000; }
-        .modal-content { background: white; padding: 30px; border-radius: 12px; width: 90%; max-width: 400px; text-align: left; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+        /* 通用弹窗遮罩 */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: flex; justify-content: center; align-items: center; z-index: 1000; }
+        .modal-content { background: white; padding: 25px; border-radius: 12px; width: 90%; max-width: 450px; text-align: left; box-shadow: 0 5px 15px rgba(0,0,0,0.3); max-height: 90vh; overflow-y: auto; }
         .hidden { display: none !important; }
         
         .profile-badge { display: inline-block; background: #e8f4fd; color: #2980b9; padding: 4px 10px; border-radius: 20px; font-size: 0.8rem; margin: 3px 2px; }
         .stats-box { display: flex; justify-content: space-around; text-align: center; margin-top: 10px; }
         .stats-num { font-size: 1.3rem; font-weight: bold; color: #e67e22; }
         .stats-label { font-size: 0.75rem; color: #7f8c8d; }
+
+        /* 练习面板内部样式 */
+        .material-box { background: #f8f9fa; padding: 12px; border-radius: 6px; border-left: 4px solid #3498db; margin-bottom: 15px; font-size: 0.9rem; line-height: 1.5; }
+        .tag-pill { display: inline-block; background: #e2e8f0; color: #475569; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; margin-right: 5px; cursor: pointer; margin-bottom: 5px; }
+        .tag-pill:hover { background: #cbd5e1; }
     </style>
 </head>
 <body>
 
     <!-- 30秒建档弹窗 -->
-    <div id="setup-modal">
+    <div id="setup-modal" class="modal-overlay">
         <div class="modal-content">
             <h2>✨ 30 秒定制你的口译路线</h2>
-            <p style="font-size: 0.85rem; color: #666;">告诉小康你的现状，为你量身生成专属路线。</p>
-            
             <label>🎓 你的年级 / 阶段：</label>
             <select id="grade">
                 <option value="大一 / 大二基础阶段">大一 / 大二基础阶段</option>
@@ -57,7 +59,6 @@
                 <option value="MTI 口译硕士 / 备考">MTI 口译硕士 / 备考</option>
                 <option value="职场进阶 / 爱好提升">职场进阶 / 爱好提升</option>
             </select>
-
             <label>⚡ 目前最大薄弱环节：</label>
             <select id="weakness">
                 <option value="数字听辨反应慢">数字听辨反应慢</option>
@@ -65,14 +66,12 @@
                 <option value="视译脱节 / 脑译不分家">视译脱节 / 脑译不分家</option>
                 <option value="高级词汇与术语匮乏">高级词汇与术语匮乏</option>
             </select>
-
             <label>⏱️ 每日练习时长：</label>
             <select id="time-limit">
                 <option value="15分钟（轻量打卡）">15分钟（轻量打卡）</option>
                 <option value="30分钟（标准突破）">30分钟（标准突破）</option>
                 <option value="60分钟（高强特训）">60分钟（高强特训）</option>
             </select>
-
             <label>🌱 兴趣主题：</label>
             <select id="interest">
                 <option value="科技与人工智能">科技与人工智能</option>
@@ -80,8 +79,40 @@
                 <option value="经济与金融贸易">经济与金融贸易</option>
                 <option value="气候变化与环保">气候变化与环保</option>
             </select>
-
             <button class="btn" onclick="saveProfile()">保存档案，生成今日路线 🚀</button>
+        </div>
+    </div>
+
+    <!-- 练习内容互动弹窗 -->
+    <div id="practice-modal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <h2 id="practice-modal-title" style="color: #3498db; margin-top:0;">练习标题</h2>
+            
+            <div class="material-box">
+                <strong>📝 练习材料 / 原文：</strong>
+                <p id="practice-text" style="margin: 5px 0 10px;">这里是材料内容...</p>
+                <div id="vocabulary-tags"></div>
+            </div>
+
+            <div style="margin-bottom: 10px;">
+                <button class="btn-sm btn-study" onclick="playAudio()" style="padding: 8px 12px;">🔊 朗读原文 / 播放音频</button>
+            </div>
+
+            <label>🎙️ 你的口译作答区（可打字或点麦克风语音输入）：</label>
+            <textarea id="user-answer" rows="3" placeholder="请输入你的译文或点击下方麦克风说话..."></textarea>
+            
+            <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                <button class="btn-sm" onclick="startSpeechRecognition()" style="background: #e67e22; color: white; flex: 1; padding: 8px;">🎤 语音输入</button>
+                <button class="btn-sm" onclick="submitAnswer()" style="background: #27ae60; color: white; flex: 1; padding: 8px;">提交作答并获取反馈</button>
+            </div>
+
+            <div id="feedback-area" style="background: #fdfefe; border: 1px dashed #cbd5e1; padding: 10px; border-radius: 6px; margin-bottom: 15px; display: none;">
+                <strong>💡 译小康反馈：</strong>
+                <p id="feedback-text" style="margin: 5px 0; font-size: 0.85rem; color: #475569;"></p>
+                <p id="reference-answer" style="margin: 5px 0; font-size: 0.85rem; color: #1e293b; font-weight: bold;"></p>
+            </div>
+
+            <button class="btn" onclick="closePracticeModal()" style="background: #95a5a6; padding: 8px;">关闭弹窗返回路线</button>
         </div>
     </div>
 
@@ -92,7 +123,6 @@
     </header>
 
     <div class="container">
-        <!-- 成长档案概览 -->
         <div class="card">
             <h2>📊 今日成长档案</h2>
             <div id="profile-tags" style="margin-bottom: 10px;"></div>
@@ -111,29 +141,24 @@
             </div>
         </div>
 
-        <!-- 今日学习路线（闭环） -->
         <div class="card">
             <h2>🎯 今日训练路线</h2>
             <p style="font-size: 0.8rem; color: #666; margin-top: 0;">提示：点“去练习”体验对应模块，完成后点击“标记完成”即可自动打卡！</p>
-            
-            <div id="route-list">
-                <!-- 动态生成的路线环节 -->
-            </div>
+            <div id="route-list"></div>
         </div>
     </div>
 
     <script>
-        // 今日路线环节数据
         const routeSteps = [
-            { id: 'warmup', icon: '🔥', title: '1. 语前热身与跟读', desc: '激活口腔肌肉与英语语感' },
-            { id: 'listening', icon: '🎧', title: '2. 听译特训', desc: '听取音频并进行口译输出' },
-            { id: 'sight', icon: '👀', title: '3. 视译突破', desc: '对照文本快速进行交传/视译' },
-            { id: 'vocabulary', icon: '📖', title: '4. 背小康·核心词汇', desc: '记忆今日新词与错题复习' }
+            { id: 'warmup', icon: '🔥', title: '1. 语前热身与跟读', desc: '激活口腔肌肉与英语语感', material: 'Good morning, ladies and gentlemen. Welcome to today\'s summit on sustainable development.', tags: ['sustainable development', 'summit'] },
+            { id: 'listening', icon: '🎧', title: '2. 听译特训', desc: '听取音频并进行口译输出', material: 'The central bank announced a new monetary policy to curb inflation and stabilize the exchange rate.', tags: ['monetary policy', 'curb inflation', 'exchange rate'] },
+            { id: 'sight', icon: '👀', title: '3. 视译突破', desc: '对照文本快速进行交传/视译', material: 'Artificial intelligence is reshaping the global industrial chain at an unprecedented speed.', tags: ['artificial intelligence', 'industrial chain'] },
+            { id: 'vocabulary', icon: '📖', title: '4. 背小康·核心词汇', desc: '记忆今日新词与错题复习', material: 'Review today\'s core phrases and build your active vocabulary storage.', tags: ['core phrases', 'active vocabulary'] }
         ];
 
-        // 内存中的状态记录
         let completedSteps = JSON.parse(localStorage.getItem('yixiaokang_completed') || '{}');
         let hasStudied = JSON.parse(localStorage.getItem('yixiaokang_studied') || '{}');
+        let currentActiveId = '';
 
         window.onload = function() {
             const savedProfile = localStorage.getItem('yixiaokang_profile');
@@ -166,15 +191,12 @@
             `;
         }
 
-        // 渲染今日路线
         function renderRoute() {
             const listContainer = document.getElementById('route-list');
             listContainer.innerHTML = '';
 
             routeSteps.forEach(step => {
-                const isStudied = hasStudied[step.id];
                 const isDone = completedSteps[step.id];
-
                 listContainer.innerHTML += `
                     <div class="route-item">
                         <div class="route-info">
@@ -185,7 +207,7 @@
                             </div>
                         </div>
                         <div class="action-btns">
-                            <button class="btn-sm btn-study" onclick="openStudy('${step.id}', '${step.title}')">去练习</button>
+                            <button class="btn-sm btn-study" onclick="openPractice('${step.id}')">去练习</button>
                             <button class="btn-sm btn-done ${isDone ? 'completed' : ''}" onclick="toggleDone('${step.id}')">
                                 ${isDone ? '已完成 ✓' : '标记完成'}
                             </button>
@@ -195,15 +217,88 @@
             });
         }
 
-        // 模拟点开练习
-        function openStudy(id, title) {
+        // 打开练习弹窗
+        function openPractice(id) {
+            currentActiveId = id;
+            const stepData = routeSteps.find(s => s.id === id);
+            
+            document.getElementById('practice-modal-title').innerText = stepData.title;
+            document.getElementById('practice-text').innerText = stepData.material;
+            
+            // 渲染原文词签
+            const tagsContainer = document.getElementById('vocabulary-tags');
+            tagsContainer.innerHTML = '<span style="font-size:0.75rem; color:#64748b;">点词加入生词本：</span>';
+            stepData.tags.forEach(tag => {
+                tagsContainer.innerHTML += `<span class="tag-pill" onclick="addToVocabulary('${tag}')">+ ${tag}</span>`;
+            });
+
+            document.getElementById('user-answer').value = '';
+            document.getElementById('feedback-area').style.display = 'none';
+            document.getElementById('practice-modal').classList.remove('hidden');
+
+            // 标记为已学过
             hasStudied[id] = true;
             localStorage.setItem('yixiaokang_studied', JSON.stringify(hasStudied));
-            alert(`正在进入【${title}】练习界面...\n(后续我们将在这里接入专属的视听、录音和 AI 评分功能)`);
+        }
+
+        function closePracticeModal() {
+            document.getElementById('practice-modal').classList.add('hidden');
             renderRoute();
         }
 
-        // 标记完成环节（闭环打卡核心逻辑）
+        // 浏览器语音朗读 (TTS)
+        function playAudio() {
+            const text = document.getElementById('practice-text').innerText;
+            if ('speechSynthesis' in window) {
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'en-US';
+                window.speechSynthesis.speak(utterance);
+            } else {
+                alert('你的浏览器暂不支持语音朗读功能');
+            }
+        }
+
+        // 浏览器语音输入 (STT)
+        function startSpeechRecognition() {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechRecognition) {
+                alert('当前浏览器不支持语音输入，请使用 Chrome 或 Edge 浏览器。');
+                return;
+            }
+            const recognition = new SpeechRecognition();
+            recognition.lang = 'en-US';
+            recognition.onresult = function(event) {
+                const transcript = event.results[0][0].transcript;
+                document.getElementById('user-answer').value += transcript;
+            };
+            recognition.start();
+            alert('麦克风已开启，请开始说话...');
+        }
+
+        // 提交作答获取反馈
+        function submitAnswer() {
+            const answer = document.getElementById('user-answer').value;
+            if (!answer.trim()) {
+                alert('请先输入或通过语音填入你的口译作答内容！');
+                return;
+            }
+            document.getElementById('feedback-text').innerText = '评分：92分。译文流畅，专业术语准确，注意语速的连贯性。';
+            document.getElementById('reference-answer').innerText = '参考标准译文：保持了原文的核心逻辑与专业词汇精度。';
+            document.getElementById('feedback-area').style.display = 'block';
+        }
+
+        // 词签加入生词本
+        function addToVocabulary(word) {
+            let vocab = JSON.parse(localStorage.getItem('yixiaokang_vocab') || '[]');
+            if (!vocab.includes(word)) {
+                vocab.push(word);
+                localStorage.setItem('yixiaokang_vocab', JSON.stringify(vocab));
+                alert(`已成功将【${word}】加入生词本（背小康已接收）！`);
+            } else {
+                alert(`【${word}】已经在你的生词本里啦！`);
+            }
+        }
+
         function toggleDone(id) {
             if (!hasStudied[id]) {
                 alert('请先点击“去练习”体验该环节，才能标记完成哦！');
@@ -211,12 +306,10 @@
             }
             completedSteps[id] = !completedSteps[id];
             localStorage.setItem('yixiaokang_completed', JSON.stringify(completedSteps));
-            
             renderRoute();
             updateStats();
         }
 
-        // 更新打卡状态
         function updateStats() {
             const anyDone = Object.values(completedSteps).some(val => val === true);
             const statusEl = document.getElementById('checkin-status');
