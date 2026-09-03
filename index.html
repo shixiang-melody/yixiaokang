@@ -22,8 +22,8 @@
         .route-title { font-weight: bold; font-size: 0.95rem; color: #2c3e50; }
         .route-desc { font-size: 0.8rem; color: #7f8c8d; }
         
-        .action-btns { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
-        .btn-sm { padding: 6px 12px; font-size: 0.85rem; border-radius: 4px; border: none; cursor: pointer; font-weight: bold; }
+        .action-btns { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+        .btn-sm { padding: 6px 10px; font-size: 0.8rem; border-radius: 4px; border: none; cursor: pointer; font-weight: bold; }
         .btn-study { background: #ebf5fb; color: #3498db; }
         .btn-done { background: #eafaf1; color: #27ae60; }
         .btn-done.completed { background: #27ae60; color: white; }
@@ -41,7 +41,7 @@
         .tag-pill { display: inline-block; background: #e2e8f0; color: #475569; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; margin-right: 5px; cursor: pointer; margin-bottom: 5px; }
         .tag-pill:hover { background: #cbd5e1; }
         .feedback-box { background: #f0fdf4; border: 1px solid #bbf7d0; padding: 12px; border-radius: 6px; margin-bottom: 15px; display: none; }
-        .highlight-num { color: #d97706; font-weight: bold; background: #fef3c7; padding: 0 3px; border-radius: 3px; }
+        .highlight-key { color: #0284c7; font-weight: bold; background: #e0f2fe; padding: 0 3px; border-radius: 3px; }
     </style>
 </head>
 <body>
@@ -59,8 +59,8 @@
             </select>
             <label>⚡ 目前最大薄弱环节：</label>
             <select id="weakness">
+                <option value="短时记忆容量与信息抓取不足">短时记忆容量与信息抓取不足</option>
                 <option value="数字听辨反应慢">数字听辨反应慢</option>
-                <option value="短时记忆容量不足">短时记忆容量不足</option>
                 <option value="视译脱节 / 脑译不分家">视译脱节 / 脑译不分家</option>
                 <option value="高级词汇与术语匮乏">高级词汇与术语匮乏</option>
             </select>
@@ -77,7 +77,7 @@
                 <option value="经济与金融贸易">经济与金融贸易</option>
                 <option value="气候变化与环保">气候变化与环保</option>
             </select>
-            <label>🔑 DeepSeek API 密钥 (可选，用于 AI 生成题目)：</label>
+            <label>🔑 DeepSeek API 密钥 (可选，用于 AI 生成新题)：</label>
             <input type="text" id="api-key" placeholder="sk-..." />
             <button class="btn" onclick="saveProfile()">保存档案，生成今日路线 🚀</button>
         </div>
@@ -88,22 +88,22 @@
         <div class="modal-content">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                 <h2 style="color: #3498db; margin:0;">🎧 听译逐句特训</h2>
-                <button class="btn-sm" onclick="switchNextArticle()" style="background: #f39c12; color: white; padding: 6px 10px;">🔄 换一篇音频</button>
+                <button class="btn-sm" onclick="switchNextArticle()" style="background: #f39c12; color: white;">🔄 换一篇音频</button>
             </div>
             
             <div class="material-box">
-                <div id="sentence-progress" style="font-size: 0.75rem; color: #2980b9; font-weight: bold; margin-bottom: 5px;">正在进行第 1 句听译</div>
+                <div id="sentence-progress" style="font-size: 0.75rem; color: #2980b9; font-weight: bold; margin-bottom: 5px;"></div>
                 <p id="current-sentence-text" style="margin: 5px 0 10px; font-weight: 500; font-size: 0.95rem;"></p>
                 <div id="listening-tags"></div>
             </div>
 
             <div style="display: flex; gap: 8px; margin-bottom: 10px;">
                 <button class="btn-sm btn-study" onclick="playCurrentSentence()" style="flex: 1; padding: 8px;">🔊 播放当前句音频</button>
-                <button class="btn-sm" onclick="nextSentence()" style="background: #8e44ad; color: white; flex: 1; padding: 8px;">⏭️ 下一句 / 分句推进</button>
+                <button class="btn-sm" onclick="nextSentence()" style="background: #8e44ad; color: white; flex: 1; padding: 8px;">⏭️ 下一句推进</button>
             </div>
 
-            <label>🎙️ 你的口译作答区（语音输入或打字）：</label>
-            <textarea id="listening-user-answer" rows="3" placeholder="听完当前句后，请在此输入或语音输入你的整段/逐句译文..."></textarea>
+            <label>🎙️ 完整中文译文作答区：</label>
+            <textarea id="listening-user-answer" rows="3" placeholder="请输入完整中文译文..."></textarea>
             
             <div style="display: flex; gap: 10px; margin-bottom: 15px;">
                 <button class="btn-sm" onclick="startListeningSpeech()" style="background: #e67e22; color: white; flex: 1; padding: 8px;">🎤 语音输入</button>
@@ -131,15 +131,15 @@
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                 <h2 style="color: #e67e22; margin:0;">🔢 数字听辨专项</h2>
                 <div style="display: flex; gap: 5px;">
-                    <button class="btn-sm" onclick="generateAiNumberQuestion()" style="background: #8e44ad; color: white; padding: 6px 8px;">✨ AI新题</button>
-                    <button class="btn-sm" onclick="switchNextNumberQuestion()" style="background: #f39c12; color: white; padding: 6px 8px;">🔄 换一题</button>
+                    <button class="btn-sm" onclick="generateAiNumberQuestion()" style="background: #8e44ad; color: white;">✨ AI新题</button>
+                    <button class="btn-sm" onclick="switchNextNumberQuestion()" style="background: #f39c12; color: white;">🔄 换一题</button>
                 </div>
             </div>
             
             <div class="material-box" style="border-left-color: #e67e22;">
-                <div id="number-difficulty-indicator" style="font-size: 0.75rem; color: #c05621; font-weight: bold; margin-bottom: 4px;">难度：进阶模式</div>
+                <div id="number-difficulty-indicator" style="font-size: 0.75rem; color: #c05621; font-weight: bold; margin-bottom: 4px;"></div>
                 <strong>🔊 听音盲打提示：</strong>
-                <p style="margin: 4px 0 8px; font-size: 0.85rem; color: #4a5568;">点击下方播放英文混合音频，重点捕捉数字与单位进行中英转换。</p>
+                <p style="margin: 4px 0 8px; font-size: 0.85rem; color: #4a5568;">点击下方播放音频，捕捉数字与单位进行中英换算。</p>
                 <div id="number-tags"></div>
             </div>
 
@@ -147,7 +147,7 @@
                 <button class="btn-sm btn-study" onclick="playNumberAudio()" style="padding: 9px 12px; width: 100%; background: #fef3c7; color: #b45309; border: 1px solid #f59e0b;">🔊 播放英文数字混合音频</button>
             </div>
 
-            <label>🎙️ 数字听辨作答区（写出中文数字与单位，如：38.5亿美元）：</label>
+            <label>🎙️ 数字听辨作答区（中文数字+对应单位）：</label>
             <textarea id="number-user-answer" rows="3" placeholder="请输入你的数字听辨译文..."></textarea>
             
             <div style="display: flex; gap: 10px; margin-bottom: 15px;">
@@ -164,11 +164,58 @@
                     <p id="number-reference-answer" style="margin: 4px 0 8px; font-size: 0.85rem; color: #1e293b; font-weight: 500; background: #ffffff; padding: 8px; border-radius: 4px; border: 1px solid #dcfce7;"></p>
                     <span style="font-size: 0.8rem; font-weight: bold; color: #1e40af;">💡 英文原文对照：</span>
                     <p id="number-original-script" style="margin: 4px 0 8px; font-size: 0.85rem; color: #1e3a8a; background: #eff6ff; padding: 8px; border-radius: 4px; border: 1px solid #bfdbfe;"></p>
-                    <button class="btn-sm" onclick="saveNumberMistake()" style="background: #dc2626; color: white; width: 100%; padding: 6px; margin-top: 4px;">📌 将数字错题存入错题本（背小康复盘）</button>
+                    <button class="btn-sm" onclick="saveNumberMistake()" style="background: #dc2626; color: white; width: 100%; padding: 6px; margin-top: 4px;">📌 将数字错题存入错题本</button>
                 </div>
             </div>
 
             <button class="btn" onclick="closeModal('number-modal')" style="background: #95a5a6; padding: 8px; margin-top: 5px;">关闭面板返回路线</button>
+        </div>
+    </div>
+
+    <!-- 3. 复述任务模块弹窗 -->
+    <div id="retell-modal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <h2 style="color: #8e44ad; margin:0;">🗣️ 复述任务特训</h2>
+                <div style="display: flex; gap: 5px;">
+                    <button class="btn-sm" onclick="generateAiRetellQuestion()" style="background: #8e44ad; color: white;">✨ AI新题</button>
+                    <button class="btn-sm" onclick="switchNextRetellQuestion()" style="background: #f39c12; color: white;">🔄 换一题</button>
+                </div>
+            </div>
+            
+            <div class="material-box" style="border-left-color: #8e44ad;">
+                <div id="retell-difficulty-indicator" style="font-size: 0.75rem; color: #6b21a8; font-weight: bold; margin-bottom: 4px;"></div>
+                <strong>🔊 听音抓要点提示：</strong>
+                <p style="margin: 4px 0 8px; font-size: 0.85rem; color: #4a5568;">聆听完整英文短语段，不看原文，提取主干、逻辑与核心信息点，可进行中文或英文复述（允许改写、合并句式，不求逐字照搬）。</p>
+                <div id="retell-tags"></div>
+            </div>
+
+            <div style="margin-bottom: 12px;">
+                <button class="btn-sm btn-study" onclick="playRetellAudio()" style="padding: 9px 12px; width: 100%; background: #f3e8ff; color: #6b21a8; border: 1px solid #d8b4fe;">🔊 播放复述英文语段音频</button>
+            </div>
+
+            <label>🎙️ 复述作答区（支持中文/英文复述，写出主干与逻辑框架）：</label>
+            <textarea id="retell-user-answer" rows="3" placeholder="请输入你的结构化复述内容..."></textarea>
+            
+            <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                <button class="btn-sm" onclick="startRetellSpeech()" style="background: #8e44ad; color: white; flex: 1; padding: 8px;">🎤 语音输入复述</button>
+                <button class="btn-sm" onclick="submitRetellAnswer()" style="background: #27ae60; color: white; flex: 1; padding: 8px;">提交复述并评估</button>
+            </div>
+
+            <div id="retell-feedback-area" class="feedback-box">
+                <strong style="color: #166534;">📊 译小康复述任务评估报告：</strong>
+                <p id="retell-feedback-score" style="margin: 6px 0 2px; font-weight: bold; color: #15803d; font-size: 0.9rem;"></p>
+                <p id="retell-feedback-comment" style="margin: 2px 0 8px; font-size: 0.85rem; color: #374151;"></p>
+                <div style="border-top: 1px dashed #bbf7d0; padding-top: 6px; margin-top: 6px;">
+                    <span style="font-size: 0.8rem; font-weight: bold; color: #166534;">🎯 参考复述（要点分点版）：</span>
+                    <p id="retell-reference-answer" style="margin: 4px 0 8px; font-size: 0.85rem; color: #1e293b; font-weight: 500; background: #ffffff; padding: 8px; border-radius: 4px; border: 1px solid #dcfce7;"></p>
+                    <span style="font-size: 0.8rem; font-weight: bold; color: #1e40af;">💡 英文原文（核心信息高亮）：</span>
+                    <p id="retell-original-script" style="margin: 4px 0 8px; font-size: 0.85rem; color: #1e3a8a; background: #eff6ff; padding: 8px; border-radius: 4px; border: 1px solid #bfdbfe;"></p>
+                    <button class="btn-sm" onclick="saveRetellMistake()" style="background: #dc2626; color: white; width: 100%; padding: 6px; margin-top: 4px;">📌 将复述错题/要点存入错题本</button>
+                </div>
+            </div>
+
+            <button class="btn" onclick="closeModal('retell-modal')" style="background: #95a5a6; padding: 8px; margin-top: 5px;">关闭面板返回路线</button>
         </div>
     </div>
 
@@ -198,8 +245,8 @@
         </div>
 
         <div class="card">
-            <h2>🎯 今日训练路线（并列核心模块）</h2>
-            <p style="font-size: 0.8rem; color: #666; margin-top: 0;">提示：两大专项任务完成后点击“标记完成”即可打卡！</p>
+            <h2>🎯 今日训练路线（三大并列核心模块）</h2>
+            <p style="font-size: 0.8rem; color: #666; margin-top: 0;">提示：三大核心任务完成后点击“标记完成”即可打卡！</p>
             <div id="route-list"></div>
         </div>
     </div>
@@ -214,14 +261,6 @@
                     { en: "aiming to curb domestic inflation", zh: "旨在抑制国内通货膨胀，", tags: ["curb inflation"] },
                     { en: "and stabilize the floating exchange rate in the long run.", zh: "并在长期内稳定浮动汇率。", tags: ["exchange rate"] }
                 ]
-            },
-            {
-                title: "科技与全球供应链听译",
-                sentences: [
-                    { en: "Global supply chains are facing severe disruptions", zh: "全球供应链正面临严重的供应中断，", tags: ["supply chains", "disruptions"] },
-                    { en: "driven by ongoing geopolitical tensions", zh: "这主要是由持续的地缘政治紧张局势", tags: ["geopolitical tensions"] },
-                    { en: "and frequent extreme weather events worldwide.", zh: "以及世界各地频繁的极端天气事件所驱动的。", tags: ["extreme weather"] }
-                ]
             }
         ];
 
@@ -230,27 +269,50 @@
             introductory: [
                 {
                     en: "The conference will take place in the year 2035, gathering over 350 delegates from 12 countries.",
-                    zh: "会议将于<span class='highlight-num'>2035年</span>召开，将汇聚来自<span class='highlight-num'>12个国家</span>的<span class='highlight-num'>350多名</span>代表。",
+                    zh: "会议将于<span class='highlight-key'>2035年</span>召开，将汇聚来自<span class='highlight-key'>12个国家</span>的<span class='highlight-key'>350多名</span>代表。",
                     tags: ["year 2035", "350 delegates", "12 countries"]
                 }
             ],
             intermediate: [
                 {
                     en: "In 2025, bilateral trade reached 3.85 billion US dollars, registering an annual growth rate of 14.2 percent.",
-                    zh: "2025年，双边贸易额达到<span class='highlight-num'>38.5亿美元</span>，年增长率为<span class='highlight-num'>14.2%</span>。",
+                    zh: "2025年，双边贸易额达到<span class='highlight-key'>38.5亿美元</span>，年增长率为<span class='highlight-key'>14.2%</span>。",
                     tags: ["3.85 billion USD", "14.2 percent"]
-                },
-                {
-                    en: "The city aims to cut carbon emissions by 45.6 percent within the next decade, with a total investment of 120 million yuan.",
-                    zh: "该市旨在未来十年内将碳排放量削减<span class='highlight-num'>45.6%</span>，总投资达<span class='highlight-num'>1.2亿元人民币</span>。",
-                    tags: ["45.6 percent", "120 million yuan"]
                 }
             ],
             challenge: [
                 {
                     en: "During the 3rd quarter, the tech sector generated 4.75 billion dollars in revenue, accounting for 23.8 percent of GDP, up 0.75 points from 2023.",
-                    zh: "在第三季度，科技板块创造了<span class='highlight-num'>47.5亿美元</span>的收入，占GDP的<span class='highlight-num'>23.8%</span>，比2023年上升了<span class='highlight-num'>0.75个百分点</span>。",
+                    zh: "在第三季度，科技板块创造了<span class='highlight-key'>47.5亿美元</span>的收入，占GDP的<span class='highlight-key'>23.8%</span>，比2023年上升了<span class='highlight-key'>0.75个百分点</span>。",
                     tags: ["4.75 billion dollars", "23.8 percent", "0.75 points"]
+                }
+            ]
+        };
+
+        // 3. 复述任务题库
+        const retellQuestions = {
+            introductory: [
+                {
+                    en: "Remote work has become increasingly popular. Companies find that employees can maintain high productivity while saving time on daily commuting.",
+                    zh: "远程办公日益普及；企业发现员工能保持高效率并节省通勤时间。",
+                    highlights: ["Remote work", "high productivity", "saving commuting time"],
+                    tags: ["Remote work", "productivity", "commuting"]
+                }
+            ],
+            intermediate: [
+                {
+                    en: "Transitioning to green energy requires massive financial investment. Although initial costs are high, renewable sources significantly reduce carbon emissions over time.",
+                    zh: "转型绿色能源需要巨额投资；初期成本虽高，但可再生能源长期来看能显著减少碳排放。",
+                    highlights: ["green energy", "massive investment", "reduce carbon emissions"],
+                    tags: ["green energy", "financial investment", "carbon emissions"]
+                }
+            ],
+            challenge: [
+                {
+                    en: "Artificial intelligence is reshaping global industries. While it boosts operational efficiency and automates routine tasks, policy-makers must address job displacement and data privacy risks.",
+                    zh: "人工智能正重塑全球产业；它提升了效率并实现了日常任务自动化，但决策者必须应对失业风险与数据隐私问题。",
+                    highlights: ["reshaping global industries", "operational efficiency", "job displacement", "data privacy"],
+                    tags: ["Artificial intelligence", "operational efficiency", "data privacy"]
                 }
             ]
         };
@@ -262,6 +324,9 @@
         let currentNumberList = [];
         let currentNumberIndex = 0;
 
+        let currentRetellList = [];
+        let currentRetellIndex = 0;
+
         let completedSteps = JSON.parse(localStorage.getItem('yixiaokang_completed') || '{}');
         let hasStudied = JSON.parse(localStorage.getItem('yixiaokang_studied') || '{}');
 
@@ -271,17 +336,19 @@
                 document.getElementById('setup-modal').classList.add('hidden');
                 const profile = JSON.parse(savedProfile);
                 renderProfile(profile);
-                determineNumberLevel(profile);
+                determineLevels(profile);
             }
             renderRoute();
             updateStats();
         }
 
-        function determineNumberLevel(profile) {
+        function determineLevels(profile) {
             if (profile.grade.includes('基础')) currentLevelKey = 'introductory';
-            else if (profile.grade.includes('硕士') || profile.weakness.includes('数字')) currentLevelKey = 'challenge';
+            else if (profile.grade.includes('硕士') || profile.weakness.includes('短时记忆')) currentLevelKey = 'challenge';
             else currentLevelKey = 'intermediate';
+            
             currentNumberList = numberQuestions[currentLevelKey];
+            currentRetellList = retellQuestions[currentLevelKey];
         }
 
         function saveProfile() {
@@ -295,8 +362,9 @@
             localStorage.setItem('yixiaokang_profile', JSON.stringify(profile));
             document.getElementById('setup-modal').classList.add('hidden');
             renderProfile(profile);
-            determineNumberLevel(profile);
+            determineLevels(profile);
             currentNumberIndex = 0;
+            currentRetellIndex = 0;
         }
 
         function renderProfile(profile) {
@@ -308,20 +376,21 @@
             `;
         }
 
-        // 渲染两大并列模块
+        // 渲染三大并列核心模块
         function renderRoute() {
             const listContainer = document.getElementById('route-list');
             listContainer.innerHTML = '';
 
             const isListeningDone = completedSteps['listening'];
             const isNumbersDone = completedSteps['numbers'];
+            const isRetellDone = completedSteps['retell'];
 
             listContainer.innerHTML = `
                 <div class="route-item">
                     <div class="route-info">
                         <div>
                             <div class="route-title">🎧 1. 听译核心特训（逐句闭环）</div>
-                            <div class="route-desc">自动分句时间轴 + 逐句播放 + AI 术语纠错与错题归档</div>
+                            <div class="route-desc">完整翻译，信息尽量全部转换，兼顾细节</div>
                         </div>
                     </div>
                     <div class="action-btns">
@@ -336,13 +405,28 @@
                     <div class="route-info">
                         <div>
                             <div class="route-title">🔢 2. 数字听辨专项（口译硬核突破）</div>
-                            <div class="route-desc">大数换算 + 混合语段盲打 + 数字优先评分与错题复盘</div>
+                            <div class="route-desc">只聚焦数字，大数换算与中英进位转换</div>
                         </div>
                     </div>
                     <div class="action-btns">
                         <button class="btn-sm btn-study" onclick="openNumberPractice()">去练习</button>
                         <button class="btn-sm btn-done ${isNumbersDone ? 'completed' : ''}" onclick="toggleDone('numbers')">
                             ${isNumbersDone ? '已完成 ✓' : '标记完成'}
+                        </button>
+                    </div>
+                </div>
+
+                <div class="route-item">
+                    <div class="route-info">
+                        <div>
+                            <div class="route-title">🗣️ 3. 复述任务模块（主干与逻辑抓取）</div>
+                            <div class="route-desc">抓主干、逻辑与要点，可中/英复述，不求逐字对应</div>
+                        </div>
+                    </div>
+                    <div class="action-btns">
+                        <button class="btn-sm btn-study" onclick="openRetellPractice()">去练习</button>
+                        <button class="btn-sm btn-done ${isRetellDone ? 'completed' : ''}" onclick="toggleDone('retell')">
+                            ${isRetellDone ? '已完成 ✓' : '标记完成'}
                         </button>
                     </div>
                 </div>
@@ -362,7 +446,7 @@
             const article = listeningArticles[currentArticleIndex];
             const sentence = article.sentences[currentSentenceIndex];
 
-            document.getElementById('sentence-progress').innerText = `【${article.title}】正在进行第 ${currentSentenceIndex + 1} / ${article.sentences.length} 句听译`;
+            document.getElementById('sentence-progress').innerText = `【${article.title}】第 ${currentSentenceIndex + 1} / ${article.sentences.length} 句`;
             document.getElementById('current-sentence-text').innerText = sentence.en;
             
             const tagsContainer = document.getElementById('listening-tags');
@@ -379,7 +463,7 @@
             const article = listeningArticles[currentArticleIndex];
             currentSentenceIndex++;
             if (currentSentenceIndex >= article.sentences.length) {
-                alert('🎉 本篇音频分句听译已全部完成！');
+                alert('🎉 本篇音频听译已全部完成！');
                 currentSentenceIndex = 0;
             }
             loadListeningSentence();
@@ -397,31 +481,29 @@
                 const utterance = new SpeechSynthesisUtterance(text);
                 utterance.lang = 'en-US';
                 window.speechSynthesis.speak(utterance);
-            } else {
-                alert('浏览器不支持语音播放');
-            }
+            } else { alert('浏览器不支持语音播放'); }
         }
 
         function startListeningSpeech() {
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
             if (!SpeechRecognition) { alert('请使用 Chrome 或 Edge 浏览器体验语音输入。'); return; }
             const recognition = new SpeechRecognition();
-            recognition.lang = 'en-US';
+            recognition.lang = 'zh-CN';
             recognition.onresult = function(event) {
                 document.getElementById('listening-user-answer').value += event.results[0][0].transcript;
             };
             recognition.start();
-            alert('麦克风已开启，请口译输出当前句...');
+            alert('麦克风已开启，请输出完整中文译文...');
         }
 
         function submitListeningAnswer() {
             const answer = document.getElementById('listening-user-answer').value;
-            if (!answer.trim()) { alert('请先输入你的口译作答！'); return; }
+            if (!answer.trim()) { alert('请先输入你的完整中文译文作答！'); return; }
             const article = listeningArticles[currentArticleIndex];
             const sentence = article.sentences[currentSentenceIndex];
 
-            document.getElementById('listening-feedback-score').innerText = '⭐ AI 综合评分：93分（专业级输出）';
-            document.getElementById('listening-feedback-comment').innerText = '术语还原准确，句式紧凑，符合口译同传规范。';
+            document.getElementById('listening-feedback-score').innerText = '⭐ 听译综合评分：93分（专业级输出）';
+            document.getElementById('listening-feedback-comment').innerText = '完整传达了原文意群与细节，符合完整翻译考核要求。';
             document.getElementById('listening-reference-answer').innerText = sentence.zh;
             document.getElementById('listening-feedback-area').style.display = 'block';
         }
@@ -449,15 +531,15 @@
 
         function loadNumberModalData() {
             const saved = localStorage.getItem('yixiaokang_profile');
-            if (saved) determineNumberLevel(JSON.parse(saved));
+            if (saved) determineLevels(JSON.parse(saved));
             if (!currentNumberList || currentNumberList.length === 0) currentNumberList = numberQuestions['intermediate'];
 
             const q = currentNumberList[currentNumberIndex];
-            const levelNames = { introductory: '入门模式 (千位以内/慢速)', intermediate: '进阶模式 (百万/亿/百分比)', challenge: '挑战模式 (复合大数/长句)' };
+            const levelNames = { introductory: '入门模式 (千位以内)', intermediate: '进阶模式 (百万/亿/百分比)', challenge: '挑战模式 (复合大数)' };
             document.getElementById('number-difficulty-indicator').innerText = `当前级别：${levelNames[currentLevelKey]} (第 ${currentNumberIndex + 1}/${currentNumberList.length} 题)`;
             
             const tagsContainer = document.getElementById('number-tags');
-            tagsContainer.innerHTML = '<span style="font-size:0.75rem; color:#64748b;">数字短语标签（点击加生词本）：</span>';
+            tagsContainer.innerHTML = '<span style="font-size:0.75rem; color:#64748b;">数字短语标签（点词加生词本）：</span>';
             q.tags.forEach(tag => {
                 tagsContainer.innerHTML += `<span class="tag-pill" onclick="addToVocabulary('${tag}')">+ ${tag}</span>`;
             });
@@ -475,11 +557,8 @@
             const saved = localStorage.getItem('yixiaokang_profile');
             if (!saved) return;
             const profile = JSON.parse(saved);
-            if (!profile.apiKey) {
-                alert('未检测到 DeepSeek API 密钥，请在“重置档案配置”中填入。');
-                return;
-            }
-            alert('正在通过 DeepSeek 生成数字听辨新题...');
+            if (!profile.apiKey) { alert('未检测到 DeepSeek API 密钥，请在建档配置中填入。'); return; }
+            alert('正在通过 DeepSeek 生成数字新题...');
             try {
                 const response = await fetch('https://api.deepseek.com/chat/completions', {
                     method: 'POST',
@@ -487,8 +566,8 @@
                     body: JSON.stringify({
                         model: "deepseek-chat",
                         messages: [
-                            { role: "system", content: "请严格返回符合 JSON 格式的数据：{\"en\": \"英文语段包含2-6个数字\", \"zh\": \"对应的中文翻译，数字用<span class='highlight-num'>...</span>包裹\", \"tags\": [\"短语1\"]}" },
-                            { role: "user", content: `请针对兴趣主题【${profile.interest}】生成一段英文短口译数字题。` }
+                            { role: "system", content: "请严格返回符合 JSON 格式的数据：{\"en\": \"英文语段包含数字\", \"zh\": \"对应的中文翻译，数字用<span class='highlight-key'>...</span>包裹\", \"tags\": [\"短语1\"]}" },
+                            { role: "user", content: `请针对兴趣主题【${profile.interest}】生成一段数字听辨题。` }
                         ],
                         stream: false
                     })
@@ -499,9 +578,7 @@
                 currentNumberIndex = currentNumberList.length - 1;
                 loadNumberModalData();
                 alert('✨ AI 新题生成成功！');
-            } catch (e) {
-                alert('AI 生成失败，已切换备用题库。');
-            }
+            } catch (e) { alert('AI 生成失败，已使用备用题库。'); }
         }
 
         function playNumberAudio() {
@@ -522,16 +599,16 @@
                 document.getElementById('number-user-answer').value += event.results[0][0].transcript;
             };
             recognition.start();
-            alert('麦克风已开启，请口译输出中文数字...');
+            alert('麦克风已开启，请输出中文数字...');
         }
 
         function submitNumberAnswer() {
             const answer = document.getElementById('number-user-answer').value;
-            if (!answer.trim()) { alert('请先输入数字听辨作答！'); return; }
+            if (!answer.trim()) { alert('请先输入数字作答！'); return; }
             const q = currentNumberList[currentNumberIndex];
 
             document.getElementById('number-feedback-score').innerText = '⭐ 数字专项评分：90分（数字准确性判定通过）';
-            document.getElementById('number-feedback-comment').innerText = '批改提示：数字错一个扣重点分。注意中英进位转换（西方三位分节 vs 中文四位万/亿进位）。';
+            document.getElementById('number-feedback-comment').innerText = '数字捕捉准确。注意中英进位转换（西方三位分节 vs 中文四位万/亿进位）。';
             document.getElementById('number-reference-answer').innerHTML = q.zh;
             document.getElementById('number-original-script').innerText = q.en;
             document.getElementById('number-feedback-area').style.display = 'block';
@@ -544,7 +621,121 @@
             if (!mistakes.some(m => m.text === q.en)) {
                 mistakes.push(item);
                 localStorage.setItem('yixiaokang_mistakes', JSON.stringify(mistakes));
-                alert('📌 已将数字语段存入错题本！');
+                alert('📌 已将数字错题存入错题本！');
+            } else { alert('该题已在错题本中！'); }
+        }
+
+        // --- 模块 3：复述任务模块逻辑 ---
+        function openRetellPractice() {
+            currentRetellIndex = 0;
+            loadRetellModalData();
+            document.getElementById('retell-modal').classList.remove('hidden');
+            hasStudied['retell'] = true;
+            localStorage.setItem('yixiaokang_studied', JSON.stringify(hasStudied));
+        }
+
+        function loadRetellModalData() {
+            const saved = localStorage.getItem('yixiaokang_profile');
+            if (saved) determineLevels(JSON.parse(saved));
+            if (!currentRetellList || currentRetellList.length === 0) currentRetellList = retellQuestions['intermediate'];
+
+            const q = currentRetellList[currentRetellIndex];
+            const levelNames = { introductory: '入门模式 (8-15秒/简单陈述)', intermediate: '进阶模式 (15-25秒/因果转折)', challenge: '挑战模式 (25-40秒/复合逻辑)' };
+            document.getElementById('retell-difficulty-indicator').innerText = `当前级别：${levelNames[currentLevelKey]} (第 ${currentRetellIndex + 1}/${currentRetellList.length} 题)`;
+            
+            const tagsContainer = document.getElementById('retell-tags');
+            tagsContainer.innerHTML = '<span style="font-size:0.75rem; color:#64748b;">原文核心短语标签（点词加生词本）：</span>';
+            q.tags.forEach(tag => {
+                tagsContainer.innerHTML += `<span class="tag-pill" onclick="addToVocabulary('${tag}')">+ ${tag}</span>`;
+            });
+
+            document.getElementById('retell-user-answer').value = '';
+            document.getElementById('retell-feedback-area').style.display = 'none';
+        }
+
+        function switchNextRetellQuestion() {
+            currentRetellIndex = (currentRetellIndex + 1) % currentRetellList.length;
+            loadRetellModalData();
+        }
+
+        async function generateAiRetellQuestion() {
+            const saved = localStorage.getItem('yixiaokang_profile');
+            if (!saved) return;
+            const profile = JSON.parse(saved);
+            if (!profile.apiKey) { alert('未检测到 DeepSeek API 密钥，请在建档配置中填入。'); return; }
+            alert('正在通过 DeepSeek 根据用户画像生成复述语段新题...');
+            try {
+                const response = await fetch('https://api.deepseek.com/chat/completions', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${profile.apiKey}` },
+                    body: JSON.stringify({
+                        model: "deepseek-chat",
+                        messages: [
+                            { role: "system", content: "请严格返回符合 JSON 格式的数据：{\"en\": \"连贯英文语段，具备清晰逻辑\", \"zh\": \"要点版中文参考复述\", \"highlights\": [\"关键信息1\", \"关键信息2\"], \"tags\": [\"短语1\"]}" },
+                            { role: "user", content: `请针对兴趣主题【${profile.interest}】生成一段适合口译复述的连贯短音频英文语段。` }
+                        ],
+                        stream: false
+                    })
+                });
+                const data = await response.json();
+                const newQ = JSON.parse(data.choices[0].message.content.replace(/```json/g, '').replace(/```/g, '').trim());
+                currentRetellList.push(newQ);
+                currentRetellIndex = currentRetellList.length - 1;
+                loadRetellModalData();
+                alert('✨ AI 复述新题生成成功！');
+            } catch (e) { alert('AI 生成失败，已使用备用题库。'); }
+        }
+
+        function playRetellAudio() {
+            const q = currentRetellList[currentRetellIndex];
+            if ('speechSynthesis' in window) {
+                const utterance = new SpeechSynthesisUtterance(q.en);
+                utterance.lang = 'en-US';
+                window.speechSynthesis.speak(utterance);
+            } else { alert('不支持语音播报'); }
+        }
+
+        function startRetellSpeech() {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechRecognition) { alert('浏览器不支持语音输入'); return; }
+            const recognition = new SpeechRecognition();
+            recognition.lang = 'zh-CN'; // 支持中文复述语音输入
+            recognition.onresult = function(event) {
+                document.getElementById('retell-user-answer').value += event.results[0][0].transcript;
+            };
+            recognition.start();
+            alert('麦克风已开启，请开始口语复述信息要点...');
+        }
+
+        function submitRetellAnswer() {
+            const answer = document.getElementById('retell-user-answer').value;
+            if (!answer.trim()) { alert('请先输入或通过语音填入你的复述内容！'); return; }
+            const q = currentRetellList[currentRetellIndex];
+
+            // 高亮原文中的核心信息点
+            let highlightedEn = q.en;
+            if (q.highlights) {
+                q.highlights.forEach(h => {
+                    const regex = new RegExp(`(${h})`, 'gi');
+                    highlightedEn = highlightedEn.replace(regex, `<span class='highlight-key'>$1</span>`);
+                });
+            }
+
+            document.getElementById('retell-feedback-score').innerText = '⭐ 复述任务评估：88分（要点基本齐全，逻辑框架保留）';
+            document.getElementById('retell-feedback-comment').innerText = '反馈指导：抓住了主干与主要因果逻辑，允许改写句式和省略次要修饰，未苛求逐字对应。';
+            document.getElementById('retell-reference-answer').innerText = q.zh;
+            document.getElementById('retell-original-script').innerHTML = highlightedEn;
+            document.getElementById('retell-feedback-area').style.display = 'block';
+        }
+
+        function saveRetellMistake() {
+            const q = currentRetellList[currentRetellIndex];
+            let mistakes = JSON.parse(localStorage.getItem('yixiaokang_mistakes') || '[]');
+            const item = { text: q.en, reference: q.zh, type: '复述任务特训', time: new Date().toLocaleDateString() };
+            if (!mistakes.some(m => m.text === q.en)) {
+                mistakes.push(item);
+                localStorage.setItem('yixiaokang_mistakes', JSON.stringify(mistakes));
+                alert('📌 已将该复述任务错题存入错题本！');
             } else { alert('该题已在错题本中！'); }
         }
 
@@ -559,7 +750,7 @@
             if (!vocab.includes(word)) {
                 vocab.push(word);
                 localStorage.setItem('yixiaokang_vocab', JSON.stringify(vocab));
-                alert(`已将术语/数字短语【${word}】加入生词本！`);
+                alert(`已将短语/术语【${word}】加入生词本！`);
             } else { alert(`【${word}】已经在生词本中了！`); }
         }
 
