@@ -3,31 +3,52 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>yixiaokang - 口译辅助学习</title>
+    <title>yixiaokang - 口译辅助学习软件</title>
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; text-align: center; margin: 0; background: #f4f6f9; color: #333; }
-        header { background: #2c3e50; color: white; padding: 20px; }
-        .card { background: white; padding: 20px; margin: 20px auto; width: 90%; max-width: 450px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); text-align: left; }
-        .card h2 { margin-top: 0; color: #2c3e50; font-size: 1.2rem; }
-        label { display: block; margin: 10px 0 5px; font-weight: bold; font-size: 0.9rem; }
-        select, input { width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
-        button { background: #3498db; color: white; border: none; padding: 12px; width: 100%; border-radius: 6px; font-size: 16px; cursor: pointer; font-weight: bold; }
-        button:hover { background: #2980b9; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; background: #f4f6f9; color: #333; padding-bottom: 40px; }
+        header { background: #2c3e50; color: white; padding: 20px; text-align: center; }
+        .container { width: 92%; max-width: 600px; margin: 20px auto; }
+        .card { background: white; padding: 20px; margin-bottom: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        .card h2 { margin-top: 0; color: #2c3e50; font-size: 1.1rem; border-bottom: 2px solid #f0f2f5; padding-bottom: 10px; }
         
-        /* 弹窗遮罩层 */
+        label { display: block; margin: 10px 0 5px; font-weight: bold; font-size: 0.9rem; }
+        select { width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
+        
+        .btn { background: #3498db; color: white; border: none; padding: 12px; width: 100%; border-radius: 6px; font-size: 16px; cursor: pointer; font-weight: bold; }
+        .btn:hover { background: #2980b9; }
+        
+        /* 路线环节卡片样式 */
+        .route-item { display: flex; align-items: center; justify-content: space-between; background: #fdfefe; border: 1px solid #e2e8f0; padding: 12px 15px; border-radius: 8px; margin-bottom: 10px; transition: all 0.2s; }
+        .route-info { display: flex; align-items: center; gap: 10px; }
+        .route-icon { font-size: 1.4rem; }
+        .route-title { font-weight: bold; font-size: 0.95rem; color: #2c3e50; }
+        .route-desc { font-size: 0.8rem; color: #7f8c8d; }
+        
+        .action-btns { display: flex; gap: 8px; }
+        .btn-sm { padding: 6px 12px; font-size: 0.85rem; border-radius: 4px; border: none; cursor: pointer; font-weight: bold; }
+        .btn-study { background: #ebf5fb; color: #3498db; }
+        .btn-study:hover { background: #d4eefc; }
+        .btn-done { background: #eafaf1; color: #27ae60; }
+        .btn-done.completed { background: #27ae60; color: white; }
+
+        /* 弹窗样式 */
         #setup-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: flex; justify-content: center; align-items: center; z-index: 1000; }
         .modal-content { background: white; padding: 30px; border-radius: 12px; width: 90%; max-width: 400px; text-align: left; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
         .hidden { display: none !important; }
-        .profile-badge { display: inline-block; background: #e8f4fd; color: #2980b9; padding: 5px 10px; border-radius: 20px; font-size: 0.85rem; margin: 5px 3px; }
+        
+        .profile-badge { display: inline-block; background: #e8f4fd; color: #2980b9; padding: 4px 10px; border-radius: 20px; font-size: 0.8rem; margin: 3px 2px; }
+        .stats-box { display: flex; justify-content: space-around; text-align: center; margin-top: 10px; }
+        .stats-num { font-size: 1.3rem; font-weight: bold; color: #e67e22; }
+        .stats-label { font-size: 0.75rem; color: #7f8c8d; }
     </style>
 </head>
 <body>
 
-    <!-- 30秒建档弹窗 (首次打开或未建档时显示) -->
+    <!-- 30秒建档弹窗 -->
     <div id="setup-modal">
         <div class="modal-content">
             <h2>✨ 30 秒定制你的口译路线</h2>
-            <p style="font-size: 0.85rem; color: #666;">告诉小康你的现状，为你量身生成专属练习。</p>
+            <p style="font-size: 0.85rem; color: #666;">告诉小康你的现状，为你量身生成专属路线。</p>
             
             <label>🎓 你的年级 / 阶段：</label>
             <select id="grade">
@@ -60,35 +81,70 @@
                 <option value="气候变化与环保">气候变化与环保</option>
             </select>
 
-            <button onclick="saveProfile()">保存档案，开启训练 🚀</button>
+            <button class="btn" onclick="saveProfile()">保存档案，生成今日路线 🚀</button>
         </div>
     </div>
 
     <!-- 主界面 -->
     <header>
-        <h1>🎧 yixiaokang · 口译训练场</h1>
-        <p id="user-welcome" style="margin: 5px 0 0; font-size: 0.9rem; opacity: 0.9;"></p>
+        <h1 style="margin:0; font-size: 1.3rem;">🎧 yixiaokang · 口译训练场</h1>
+        <p id="user-welcome" style="margin: 5px 0 0; font-size: 0.85rem; opacity: 0.9;"></p>
     </header>
 
-    <div class="card">
-        <h2>📊 今日成长档案</h2>
-        <div id="profile-tags"></div>
-        <p style="margin-bottom: 5px; color: #666; font-size: 0.9rem;">修改档案或重新建档：</p>
-        <button onclick="resetProfile()" style="background: #95a5a6; padding: 8px; font-size: 14px;">重置个人档案</button>
+    <div class="container">
+        <!-- 成长档案概览 -->
+        <div class="card">
+            <h2>📊 今日成长档案</h2>
+            <div id="profile-tags" style="margin-bottom: 10px;"></div>
+            <div class="stats-box">
+                <div>
+                    <div id="streak-num" class="stats-num">🔥 0 天</div>
+                    <div class="stats-label">连续打卡</div>
+                </div>
+                <div>
+                    <div id="checkin-status" class="stats-num" style="color: #95a5a6;">❌ 未打卡</div>
+                    <div class="stats-label">今日状态</div>
+                </div>
+            </div>
+            <div style="text-align: right; margin-top: 10px;">
+                <button onclick="resetProfile()" style="background: none; border: none; color: #95a5a6; font-size: 0.75rem; cursor: pointer;">重置档案配置</button>
+            </div>
+        </div>
+
+        <!-- 今日学习路线（闭环） -->
+        <div class="card">
+            <h2>🎯 今日训练路线</h2>
+            <p style="font-size: 0.8rem; color: #666; margin-top: 0;">提示：点“去练习”体验对应模块，完成后点击“标记完成”即可自动打卡！</p>
+            
+            <div id="route-list">
+                <!-- 动态生成的路线环节 -->
+            </div>
+        </div>
     </div>
 
     <script>
-        // 页面加载时检查是否已经建过档
+        // 今日路线环节数据
+        const routeSteps = [
+            { id: 'warmup', icon: '🔥', title: '1. 语前热身与跟读', desc: '激活口腔肌肉与英语语感' },
+            { id: 'listening', icon: '🎧', title: '2. 听译特训', desc: '听取音频并进行口译输出' },
+            { id: 'sight', icon: '👀', title: '3. 视译突破', desc: '对照文本快速进行交传/视译' },
+            { id: 'vocabulary', icon: '📖', title: '4. 背小康·核心词汇', desc: '记忆今日新词与错题复习' }
+        ];
+
+        // 内存中的状态记录
+        let completedSteps = JSON.parse(localStorage.getItem('yixiaokang_completed') || '{}');
+        let hasStudied = JSON.parse(localStorage.getItem('yixiaokang_studied') || '{}');
+
         window.onload = function() {
             const savedProfile = localStorage.getItem('yixiaokang_profile');
             if (savedProfile) {
-                // 如果建过档，隐藏弹窗并渲染数据
                 document.getElementById('setup-modal').classList.add('hidden');
                 renderProfile(JSON.parse(savedProfile));
             }
+            renderRoute();
+            updateStats();
         }
 
-        // 保存档案函数
         function saveProfile() {
             const profile = {
                 grade: document.getElementById('grade').value,
@@ -96,31 +152,87 @@
                 timeLimit: document.getElementById('time-limit').value,
                 interest: document.getElementById('interest').value
             };
-            
-            // 存入浏览器本地存储
             localStorage.setItem('yixiaokang_profile', JSON.stringify(profile));
-            
-            // 隐藏弹窗
             document.getElementById('setup-modal').classList.add('hidden');
-            
-            // 渲染数据
             renderProfile(profile);
         }
 
-        // 渲染档案到主界面
         function renderProfile(profile) {
-            document.getElementById('user-welcome').innerText = `当前路线：${profile.interest}方向 | 目标每日 ${profile.timeLimit}`;
-            
-            const tagsContainer = document.getElementById('profile-tags');
-            tagsContainer.innerHTML = `
+            document.getElementById('user-welcome').innerText = `当前路线：${profile.interest}方向`;
+            document.getElementById('profile-tags').innerHTML = `
                 <div class="profile-badge">🎓 ${profile.grade}</div>
                 <div class="profile-badge">⚡ 薄弱：${profile.weakness}</div>
                 <div class="profile-badge">⏱️ ${profile.timeLimit}</div>
-                <div class="profile-badge">🌱 兴趣：${profile.interest}</div>
             `;
         }
 
-        // 重置档案（方便测试）
+        // 渲染今日路线
+        function renderRoute() {
+            const listContainer = document.getElementById('route-list');
+            listContainer.innerHTML = '';
+
+            routeSteps.forEach(step => {
+                const isStudied = hasStudied[step.id];
+                const isDone = completedSteps[step.id];
+
+                listContainer.innerHTML += `
+                    <div class="route-item">
+                        <div class="route-info">
+                            <div class="route-icon">${step.icon}</div>
+                            <div>
+                                <div class="route-title">${step.title}</div>
+                                <div class="route-desc">${step.desc}</div>
+                            </div>
+                        </div>
+                        <div class="action-btns">
+                            <button class="btn-sm btn-study" onclick="openStudy('${step.id}', '${step.title}')">去练习</button>
+                            <button class="btn-sm btn-done ${isDone ? 'completed' : ''}" onclick="toggleDone('${step.id}')">
+                                ${isDone ? '已完成 ✓' : '标记完成'}
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        // 模拟点开练习
+        function openStudy(id, title) {
+            hasStudied[id] = true;
+            localStorage.setItem('yixiaokang_studied', JSON.stringify(hasStudied));
+            alert(`正在进入【${title}】练习界面...\n(后续我们将在这里接入专属的视听、录音和 AI 评分功能)`);
+            renderRoute();
+        }
+
+        // 标记完成环节（闭环打卡核心逻辑）
+        function toggleDone(id) {
+            if (!hasStudied[id]) {
+                alert('请先点击“去练习”体验该环节，才能标记完成哦！');
+                return;
+            }
+            completedSteps[id] = !completedSteps[id];
+            localStorage.setItem('yixiaokang_completed', JSON.stringify(completedSteps));
+            
+            renderRoute();
+            updateStats();
+        }
+
+        // 更新打卡状态
+        function updateStats() {
+            const anyDone = Object.values(completedSteps).some(val => val === true);
+            const statusEl = document.getElementById('checkin-status');
+            const streakEl = document.getElementById('streak-num');
+
+            if (anyDone) {
+                statusEl.innerText = '✅ 已打卡';
+                statusEl.style.color = '#27ae60';
+                streakEl.innerText = '🔥 1 天';
+            } else {
+                statusEl.innerText = '❌ 未打卡';
+                statusEl.style.color = '#95a5a6';
+                streakEl.innerText = '🔥 0 天';
+            }
+        }
+
         function resetProfile() {
             localStorage.removeItem('yixiaokang_profile');
             document.getElementById('setup-modal').classList.remove('hidden');
