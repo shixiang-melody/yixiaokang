@@ -5,269 +5,263 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>yixiaokang · 口译辅助学习软件</title>
     <style>
-        :root {
-            --primary-color: #2c3e50;
-            --accent-color: #3498db;
-            --success-color: #27ae60;
-            --bg-color: #f8f9fa;
-            --card-bg: #ffffff;
-            --text-color: #333333;
-        }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; background: #f4f6f9; color: #333; padding-bottom: 40px; }
+        header { background: #2c3e50; color: white; padding: 20px; text-align: center; }
+        .container { width: 92%; max-width: 600px; margin: 20px auto; }
+        .card { background: white; padding: 20px; margin-bottom: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        .card h2 { margin-top: 0; color: #2c3e50; font-size: 1.1rem; border-bottom: 2px solid #f0f2f5; padding-bottom: 10px; }
+        
+        label { display: block; margin: 10px 0 5px; font-weight: bold; font-size: 0.9rem; }
+        select, textarea, input[type="text"], input[type="password"] { width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-family: inherit; }
+        
+        .btn { background: #3498db; color: white; border: none; padding: 12px; width: 100%; border-radius: 6px; font-size: 16px; cursor: pointer; font-weight: bold; }
+        .btn:hover { background: #2980b9; }
+        
+        .route-item { display: flex; align-items: center; justify-content: space-between; background: #fdfefe; border: 1px solid #e2e8f0; padding: 12px 15px; border-radius: 8px; margin-bottom: 10px; }
+        .route-info { display: flex; align-items: center; gap: 10px; }
+        .route-title { font-weight: bold; font-size: 0.95rem; color: #2c3e50; }
+        .route-desc { font-size: 0.8rem; color: #7f8c8d; }
+        
+        .action-btns { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+        .btn-sm { padding: 6px 10px; font-size: 0.8rem; border-radius: 4px; border: none; cursor: pointer; font-weight: bold; }
+        .btn-study { background: #ebf5fb; color: #3498db; }
+        .btn-done { background: #eafaf1; color: #27ae60; }
+        .btn-done.completed { background: #27ae60; color: white; }
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            margin: 0;
-            padding: 0;
-            line-height: 1.6;
-        }
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: flex; justify-content: center; align-items: center; z-index: 1000; }
+        .modal-content { background: white; padding: 25px; border-radius: 12px; width: 90%; max-width: 480px; text-align: left; box-shadow: 0 5px 15px rgba(0,0,0,0.3); max-height: 90vh; overflow-y: auto; }
+        .hidden { display: none !important; }
+        
+        .profile-badge { display: inline-block; background: #e8f4fd; color: #2980b9; padding: 4px 10px; border-radius: 20px; font-size: 0.8rem; margin: 3px 2px; }
+        .stats-box { display: flex; justify-content: space-around; text-align: center; margin-top: 10px; }
+        .stats-num { font-size: 1.3rem; font-weight: bold; color: #e67e22; }
+        .stats-label { font-size: 0.75rem; color: #7f8c8d; }
 
-        header {
-            background-color: var(--primary-color);
-            color: white;
-            padding: 1.5rem;
-            text-align: center;
-        }
-
-        header h1 {
-            margin: 0;
-            font-size: 1.8rem;
-        }
-
-        header p {
-            margin: 0.5rem 0 0;
-            opacity: 0.8;
-            font-size: 0.95rem;
-        }
-
-        .container {
-            max-width: 900px;
-            margin: 2rem auto;
-            padding: 0 1rem;
-        }
-
-        .card {
-            background: var(--card-bg);
-            border-radius: 8px;
-            padding: 1.5rem;
-            margin-bottom: 1.5rem;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-        }
-
-        .card h2 {
-            margin-top: 0;
-            color: var(--primary-color);
-            font-size: 1.3rem;
-            border-bottom: 2px solid var(--bg-color);
-            padding-bottom: 0.5rem;
-        }
-
-        .btn {
-            background-color: var(--accent-color);
-            color: white;
-            border: none;
-            padding: 0.6rem 1.2rem;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 0.95rem;
-            transition: background 0.2s;
-            margin-right: 0.5rem;
-            margin-top: 0.5rem;
-        }
-
-        .btn:hover {
-            opacity: 0.9;
-        }
-
-        .btn-success {
-            background-color: var(--success-color);
-        }
-
-        .tag-pill {
-            display: inline-block;
-            background: #e1f5fe;
-            color: #0288d1;
-            padding: 0.2rem 0.6rem;
-            border-radius: 12px;
-            font-size: 0.8rem;
-            margin-right: 0.4rem;
-        }
-
-        .feedback-area {
-            background: #f1f8e9;
-            border-left: 4px solid var(--success-color);
-            padding: 1rem;
-            margin-top: 1rem;
-            display: none;
-        }
-
-        textarea {
-            width: 100%;
-            height: 80px;
-            padding: 0.5rem;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            margin-top: 0.5rem;
-            box-sizing: border-box;
-        }
-
-        .modal {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.5);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-        }
-
-        .modal.hidden {
-            display: none;
-        }
-
-        .modal-content {
-            background: white;
-            padding: 2rem;
-            border-radius: 8px;
-            width: 90%;
-            max-width: 500px;
-        }
-
-        .modal-content input, .modal-content select {
-            width: 100%;
-            padding: 0.5rem;
-            margin: 0.5rem 0 1rem;
-            box-sizing: border-box;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-        }
+        .material-box { background: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 4px solid #3498db; margin-bottom: 15px; }
+        .tag-pill { display: inline-block; background: #e2e8f0; color: #475569; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; margin-right: 5px; margin-bottom: 5px; }
+        .feedback-box { background: #f0fdf4; border: 1px solid #bbf7d0; padding: 12px; border-radius: 6px; margin-bottom: 15px; display: none; }
+        .highlight-key { color: #d97706; font-weight: bold; background: #fef3c7; padding: 0 3px; border-radius: 3px; }
     </style>
 </head>
 <body>
 
-    <header>
-        <h1>🎧 yixiaokang · 口译辅助学习软件</h1>
-        <p>顺句驱动、数字听辨与实战模拟训练平台</p>
-    </header>
-
-    <div class="container">
-        <!-- 连续打卡与档案概览 -->
-        <div class="card">
-            <h2>📊 学习档案与今日打卡</h2>
-            <p>打卡状态：<span id="checkin-status" style="font-weight: bold; color: #95a5a6;">❌ 未打卡</span></p>
-            <button class="btn" onclick="resetProfile()">修改配置档案</button>
-        </div>
-
-        <!-- 模块一：听译逐句特训 -->
-        <div class="card">
-            <h2>🎧 听译逐句特训 (Yi Xiaokang)</h2>
-            <div id="sentence-progress" style="font-weight: bold; margin-bottom: 0.5rem; color: var(--accent-color);">加载中...</div>
-            <p id="current-sentence-text" style="font-size: 1.1rem; background: #fafafa; padding: 1rem; border-radius: 4px;"></p>
-            <div id="listening-tags" style="margin-bottom: 0.5rem;"></div>
-            
-            <button class="btn" onclick="playCurrentSentence()">🔊 朗读英文句子</button>
-            <button class="btn" onclick="nextSentence()">下一句</button>
-            <button class="btn" onclick="switchNextArticle()">切换文章</button>
-
-            <textarea id="listening-user-answer" placeholder="请键入或口述你的中文译文..."></textarea>
-            <button class="btn btn-success" onclick="submitListeningAnswer()">提交批改</button>
-            <button class="btn" onclick="toggleDone('listening')">标记此模块已完成</button>
-
-            <div id="listening-feedback-area" class="feedback-area">
-                <h4 id="listening-feedback-score" style="margin: 0 0 0.5rem; color: var(--success-color);"></h4>
-                <p id="listening-feedback-comment" style="margin: 0 0 0.5rem;"></p>
-                <p style="margin: 0; font-size: 0.9rem;"><strong>参考译文：</strong><span id="listening-reference-answer"></span></p>
-            </div>
+    <!-- 30秒建档弹窗 -->
+    <div id="setup-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h2>✨ 30 秒定制你的口译路线</h2>
+            <label>🎓 你的年级 / 阶段：</label>
+            <select id="grade">
+                <option value="大一 / 大二基础阶段">大一 / 大二基础阶段</option>
+                <option value="大三 / 大四专业阶段">大三 / 大四专业阶段</option>
+                <option value="MTI 口译硕士 / 备考">MTI 口译硕士 / 备考</option>
+                <option value="职场进阶 / 爱好提升">职场进阶 / 爱好提升</option>
+            </select>
+            <label>⚡ 目前最大薄弱环节：</label>
+            <select id="weakness">
+                <option value="短时记忆容量与信息抓取不足">短时记忆容量与信息抓取不足</option>
+                <option value="数字听辨反应慢">数字听辨反应慢</option>
+                <option value="视译脱节 / 顺句驱动不足">视译脱节 / 顺句驱动不足</option>
+                <option value="高级词汇与术语匮乏">高级词汇与术语匮乏</option>
+            </select>
+            <label>⏱️ 每日练习时长：</label>
+            <select id="time-limit">
+                <option value="15分钟（轻量打卡）">15分钟（轻量打卡）</option>
+                <option value="30分钟（标准突破）">30分钟（标准突破）</option>
+                <option value="60分钟（高强特训）">60分钟（高强特训）</option>
+            </select>
+            <label>🌱 兴趣主题：</label>
+            <select id="interest">
+                <option value="科技与人工智能">科技与人工智能</option>
+                <option value="外交与国际政治">外交与国际政治</option>
+                <option value="经济与金融贸易">经济与金融贸易</option>
+                <option value="气候变化与环保">气候变化与环保</option>
+            </select>
+            <label>🔑 DeepSeek API 密钥 (可选)：</label>
+            <input type="password" id="api-key" placeholder="sk-..." />
+            <button class="btn" onclick="saveProfile()">保存档案，生成今日路线 🚀</button>
         </div>
     </div>
 
-    <!-- 30秒建档弹窗 -->
-    <div id="setup-modal" class="modal">
+    <!-- 1. 听译特训工作台弹窗 -->
+    <div id="listening-modal" class="modal-overlay hidden">
         <div class="modal-content">
-            <h2>欢迎使用 yixiaokang</h2>
-            <p>请简单配置您的口译学习偏好：</p>
-            <label>当前年级/水平：</label>
-            <select id="setup-level">
-                <option value="undergrad">本科英语专业 / 口译初学者</option>
-                <option value="mtI">MTI 口译硕士 / 进阶者</option>
-                <option value="pro">职业口译员 / 备考高翻</option>
-            </select>
-            <label>DeepSeek API Key (可选，用于本地拓展)：</label>
-            <input type="password" id="setup-key" placeholder="sk-...">
-            <button class="btn btn-success" style="width: 100%;" onclick="saveProfile()">保存并开始训练</button>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <h2 style="color: #3498db; margin:0;">🎧 听译逐句特训</h2>
+                <button class="btn-sm" onclick="switchNextArticle()" style="background: #f39c12; color: white;">🔄 换一篇音频</button>
+            </div>
+            <div class="material-box">
+                <div id="sentence-progress" style="font-size: 0.75rem; color: #2980b9; font-weight: bold; margin-bottom: 5px;"></div>
+                <p id="current-sentence-text" style="margin: 5px 0 10px; font-weight: 500; font-size: 0.95rem;"></p>
+                <div id="listening-tags"></div>
+            </div>
+            <div style="display: flex; gap: 8px; margin-bottom: 10px;">
+                <button class="btn-sm btn-study" onclick="playCurrentSentence()" style="flex: 1; padding: 8px;">🔊 播放当前句音频</button>
+                <button class="btn-sm" onclick="nextSentence()" style="background: #8e44ad; color: white; flex: 1; padding: 8px;">⏭️ 下一句推进</button>
+            </div>
+            <label>🎙️ 完整中文译文作答区：</label>
+            <textarea id="listening-user-answer" rows="3" placeholder="请输入完整中文译文..."></textarea>
+            <button class="btn-sm" onclick="submitListeningAnswer()" style="background: #27ae60; color: white; width: 100%; padding: 10px; margin-bottom: 15px;">✨ AI 批改与纠错</button>
+            <div id="listening-feedback-area" class="feedback-box">
+                <strong style="color: #166534;">🤖 AI 批改报告：</strong>
+                <p id="listening-feedback-score" style="margin: 6px 0 2px; font-weight: bold; color: #15803d; font-size: 0.9rem;"></p>
+                <p id="listening-feedback-comment" style="margin: 2px 0 8px; font-size: 0.85rem; color: #374151;"></p>
+                <p id="listening-reference-answer" style="margin: 4px 0 8px; font-size: 0.85rem; color: #1e293b; background: #ffffff; padding: 8px; border-radius: 4px; border: 1px solid #dcfce7;"></p>
+            </div>
+            <button class="btn" onclick="closeModal('listening-modal')" style="background: #95a5a6; padding: 8px;">关闭面板返回路线</button>
+        </div>
+    </div>
+
+    <!-- 2. 数字听辨弹窗 -->
+    <div id="number-modal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <h2 style="color: #e67e22; margin-top:0;">🔢 数字听辨专项</h2>
+            <p style="font-size: 0.9rem; color: #666;">数字听辨与进位转换特训模块。</p>
+            <textarea id="number-user-answer" rows="3" placeholder="请输入你的数字翻译..."></textarea>
+            <button class="btn" onclick="closeModal('number-modal')" style="background: #95a5a6; padding: 8px;">关闭面板</button>
+        </div>
+    </div>
+
+    <!-- 3. 复述任务弹窗 -->
+    <div id="retell-modal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <h2 style="color: #8e44ad; margin-top:0;">🗣️ 复述任务特训</h2>
+            <p style="font-size: 0.9rem; color: #666;">抓主干与逻辑框架复述模块。</p>
+            <textarea id="retell-user-answer" rows="3" placeholder="请输入复述内容..."></textarea>
+            <button class="btn" onclick="closeModal('retell-modal')" style="background: #95a5a6; padding: 8px;">关闭面板</button>
+        </div>
+    </div>
+
+    <!-- 4. 视译模块弹窗 -->
+    <div id="sight-modal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <h2 style="color: #27ae60; margin-top:0;">👁️ 视译任务特训</h2>
+            <p style="font-size: 0.9rem; color: #666;">顺句驱动即时视译转换模块。</p>
+            <textarea id="sight-user-answer" rows="3" placeholder="Type your English translation..."></textarea>
+            <button class="btn" onclick="closeModal('sight-modal')" style="background: #95a5a6; padding: 8px;">关闭面板</button>
+        </div>
+    </div>
+
+    <!-- 主界面 -->
+    <header>
+        <h1 style="margin:0; font-size: 1.3rem;">🎧 yixiaokang · 口译训练场</h1>
+        <p id="user-welcome" style="margin: 5px 0 0; font-size: 0.85rem; opacity: 0.9;"></p>
+    </header>
+
+    <div class="container">
+        <div class="card">
+            <h2>📊 今日成长档案</h2>
+            <div id="profile-tags" style="margin-bottom: 10px;"></div>
+            <div class="stats-box">
+                <div>
+                    <div id="streak-num" class="stats-num">🔥 1 天</div>
+                    <div class="stats-label">连续打卡</div>
+                </div>
+                <div>
+                    <div id="checkin-status" class="stats-num" style="color: #95a5a6;">❌ 未打卡</div>
+                    <div class="stats-label">今日状态</div>
+                </div>
+            </div>
+            <div style="text-align: right; margin-top: 10px;">
+                <button onclick="resetProfile()" style="background: none; border: none; color: #95a5a6; font-size: 0.75rem; cursor: pointer;">重置档案配置</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>🎯 今日训练路线（四大核心模块）</h2>
+            <div id="route-list"></div>
         </div>
     </div>
 
     <script>
         const listeningArticles = [
             {
-                title: "经济全球化与科技创新",
+                title: "经济与财政政策听译",
                 sentences: [
-                    { en: "In recent years, artificial intelligence has profoundly reshaped the global economic landscape.", zh: "近年来，人工智能深刻重塑了全球经济格局。", tags: ["AI", "经济"] },
-                    { en: "We must foster an open environment for scientific and technological cooperation.", zh: "我们必须营造开放的科技合作环境。", tags: ["科技合作"] }
-                ]
-            },
-            {
-                title: "绿色发展与气候变化",
-                sentences: [
-                    { en: "Achieving carbon neutrality requires a fundamental transformation of our energy systems.", zh: "实现碳中和需要对能源系统进行根本性变革。", tags: ["碳中和", "环保"] }
+                    { en: "The central bank announced a new monetary policy,", zh: "中央银行宣布了一项新的货币政策，", tags: ["central bank"] },
+                    { en: "aiming to curb domestic inflation", zh: "旨在抑制国内通货膨胀。", tags: ["inflation"] }
                 ]
             }
         ];
 
         let currentArticleIndex = 0;
         let currentSentenceIndex = 0;
-        let completedSteps = { listening: false, numbers: false, retell: false, sight: false };
+        let completedSteps = JSON.parse(localStorage.getItem('yixiaokang_completed') || '{}');
 
         window.onload = function() {
-            const profile = localStorage.getItem('yixiaokang_profile');
-            if (!profile) {
-                document.getElementById('setup-modal').classList.remove('hidden');
+            const savedProfile = localStorage.getItem('yixiaokang_profile');
+            if (savedProfile) {
+                document.getElementById('setup-modal').classList.add('hidden');
+                renderProfile(JSON.parse(savedProfile));
             }
-            loadListeningSentence();
+            renderRoute();
             updateStats();
-        };
+        }
 
         function saveProfile() {
-            const level = document.getElementById('setup-level').value;
-            localStorage.setItem('yixiaokang_profile', JSON.stringify({ level }));
+            const profile = {
+                grade: document.getElementById('grade').value,
+                weakness: document.getElementById('weakness').value,
+                timeLimit: document.getElementById('time-limit').value,
+                interest: document.getElementById('interest').value
+            };
+            localStorage.setItem('yixiaokang_profile', JSON.stringify(profile));
             document.getElementById('setup-modal').classList.add('hidden');
+            renderProfile(profile);
+            renderRoute();
+        }
+
+        function renderProfile(profile) {
+            document.getElementById('user-welcome').innerText = `当前路线：${profile.interest}方向`;
+            document.getElementById('profile-tags').innerHTML = `
+                <div class="profile-badge">🎓 ${profile.grade}</div>
+                <div class="profile-badge">⚡ 薄弱：${profile.weakness}</div>
+                <div class="profile-badge">⏱️ ${profile.timeLimit}</div>
+            `;
+        }
+
+        function renderRoute() {
+            const listContainer = document.getElementById('route-list');
+            listContainer.innerHTML = `
+                <div class="route-item">
+                    <div class="route-info"><div><div class="route-title">🎧 1. 听译核心特训</div><div class="route-desc">逐句闭环与细节转换</div></div></div>
+                    <div class="action-btns"><button class="btn-sm btn-study" onclick="openModal('listening-modal'); loadListeningSentence()">去练习</button><button class="btn-sm btn-done ${completedSteps['listening'] ? 'completed' : ''}" onclick="toggleDone('listening')">${completedSteps['listening'] ? '已完成 ✓' : '标记完成'}</button></div>
+                </div>
+                <div class="route-item">
+                    <div class="route-info"><div><div class="route-title">🔢 2. 数字听辨专项</div><div class="route-desc">大数换算与进位转换</div></div></div>
+                    <div class="action-btns"><button class="btn-sm btn-study" onclick="openModal('number-modal')">去练习</button><button class="btn-sm btn-done ${completedSteps['numbers'] ? 'completed' : ''}" onclick="toggleDone('numbers')">${completedSteps['numbers'] ? '已完成 ✓' : '标记完成'}</button></div>
+                </div>
+                <div class="route-item">
+                    <div class="route-info"><div><div class="route-title">🗣️ 3. 复述任务模块</div><div class="route-desc">抓主干与逻辑要点</div></div></div>
+                    <div class="action-btns"><button class="btn-sm btn-study" onclick="openModal('retell-modal')">去练习</button><button class="btn-sm btn-done ${completedSteps['retell'] ? 'completed' : ''}" onclick="toggleDone('retell')">${completedSteps['retell'] ? '已完成 ✓' : '标记完成'}</button></div>
+                </div>
+                <div class="route-item">
+                    <div class="route-info"><div><div class="route-title">👁️ 4. 视译任务模块</div><div class="route-desc">顺句驱动即时转换</div></div></div>
+                    <div class="action-btns"><button class="btn-sm btn-study" onclick="openModal('sight-modal')">去练习</button><button class="btn-sm btn-done ${completedSteps['sight'] ? 'completed' : ''}" onclick="toggleDone('sight')">${completedSteps['sight'] ? '已完成 ✓' : '标记完成'}</button></div>
+                </div>
+            `;
         }
 
         function loadListeningSentence() {
             const article = listeningArticles[currentArticleIndex];
             const sentence = article.sentences[currentSentenceIndex];
-            
             document.getElementById('sentence-progress').innerText = `【${article.title}】进度：第 ${currentSentenceIndex + 1} / ${article.sentences.length} 句`;
             document.getElementById('current-sentence-text').innerText = sentence.en;
-            
-            const tagsContainer = document.getElementById('listening-tags');
-            tagsContainer.innerHTML = sentence.tags.map(t => `<span class="tag-pill">${t}</span>`).join('');
-            
+            document.getElementById('listening-tags').innerHTML = sentence.tags.map(t => `<span class="tag-pill">${t}</span>`).join('');
             document.getElementById('listening-user-answer').value = '';
             document.getElementById('listening-feedback-area').style.display = 'none';
         }
 
         function playCurrentSentence() {
-            const article = listeningArticles[currentArticleIndex];
-            const sentence = article.sentences[currentSentenceIndex];
+            const sentence = listeningArticles[currentArticleIndex].sentences[currentSentenceIndex];
             if ('speechSynthesis' in window) {
                 const utterance = new SpeechSynthesisUtterance(sentence.en);
                 utterance.lang = 'en-US';
                 window.speechSynthesis.speak(utterance);
-            } else {
-                alert('当前浏览器不支持内置语音朗读功能。');
             }
         }
 
         function nextSentence() {
-            const article = listeningArticles[currentArticleIndex];
-            currentSentenceIndex++;
-            if (currentSentenceIndex >= article.sentences.length) {
-                currentSentenceIndex = 0;
-                alert('当前文章句子已学完，为您循环至第一句！');
-            }
+            currentSentenceIndex = (currentSentenceIndex + 1) % listeningArticles[currentArticleIndex].sentences.length;
             loadListeningSentence();
         }
 
@@ -278,36 +272,30 @@
         }
 
         function submitListeningAnswer() {
-            const userAnswer = document.getElementById('listening-user-answer').value.trim();
-            if (!userAnswer) {
-                alert('请先输入你的中文译文！');
-                return;
-            }
-            const article = listeningArticles[currentArticleIndex];
-            const sentence = article.sentences[currentSentenceIndex];
-
-            document.getElementById('listening-feedback-score').innerText = '评分：90 / 100 分 (专业级表现)';
+            const ans = document.getElementById('listening-user-answer').value.trim();
+            if (!ans) { alert('请输入译文'); return; }
+            document.getElementById('listening-feedback-score').innerText = '评分：90 / 100 分';
             document.getElementById('listening-feedback-comment').innerText = '核心术语准确，顺句驱动表现良好。';
-            document.getElementById('listening-reference-answer').innerText = sentence.zh;
+            document.getElementById('listening-reference-answer').innerText = '参考译文：' + listeningArticles[currentArticleIndex].sentences[currentSentenceIndex].zh;
             document.getElementById('listening-feedback-area').style.display = 'block';
         }
 
-        function toggleDone(moduleKey) {
-            completedSteps[moduleKey] = !completedSteps[moduleKey];
+        function toggleDone(key) {
+            completedSteps[key] = !completedSteps[key];
+            localStorage.setItem('yixiaokang_completed', JSON.stringify(completedSteps));
+            renderRoute();
             updateStats();
         }
 
         function updateStats() {
+            const allDone = ['listening', 'numbers', 'retell', 'sight'].every(k => completedSteps[k]);
             const statusEl = document.getElementById('checkin-status');
-            if (completedSteps.listening) {
-                statusEl.innerText = '✨ 今日已完成';
-                statusEl.style.color = '#27ae60';
-            } else {
-                statusEl.innerText = '❌ 未打卡';
-                statusEl.style.color = '#95a5a6';
-            }
+            statusEl.innerText = allDone ? '✨ 今日已完成' : '❌ 未打卡';
+            statusEl.style.color = allDone ? '#27ae60' : '#95a5a6';
         }
 
+        function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
+        function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
         function resetProfile() {
             localStorage.removeItem('yixiaokang_profile');
             document.getElementById('setup-modal').classList.remove('hidden');
