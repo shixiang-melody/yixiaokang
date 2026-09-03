@@ -40,7 +40,7 @@
         .material-box { background: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 4px solid #3498db; margin-bottom: 15px; }
         .tag-pill { display: inline-block; background: #e2e8f0; color: #475569; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; margin-right: 5px; margin-bottom: 5px; }
         .feedback-box { background: #f0fdf4; border: 1px solid #bbf7d0; padding: 12px; border-radius: 6px; margin-bottom: 15px; display: none; }
-        .highlight-key { color: #d97706; font-weight: bold; background: #fef3c7; padding: 0 3px; border-radius: 3px; }
+        .sync-status { font-size: 0.7rem; color: #27ae60; text-align: right; margin-top: 5px; }
     </style>
 </head>
 <body>
@@ -115,7 +115,7 @@
     <div id="number-modal" class="modal-overlay hidden">
         <div class="modal-content">
             <h2 style="color: #e67e22; margin-top:0;">🔢 数字听辨专项</h2>
-            <p style="font-size: 0.9rem; color: #666;">数字听辨与进位转换特训模块。</p>
+            <p style="font-size: 0.9rem; color: #666;">大数换算与进位转换特训模块。</p>
             <textarea id="number-user-answer" rows="3" placeholder="请输入你的数字翻译..."></textarea>
             <button class="btn" onclick="closeModal('number-modal')" style="background: #95a5a6; padding: 8px;">关闭面板</button>
         </div>
@@ -161,6 +161,7 @@
                     <div class="stats-label">今日状态</div>
                 </div>
             </div>
+            <div id="sync-indicator" class="sync-status">☁️ 数据已启用本地存储</div>
             <div style="text-align: right; margin-top: 10px;">
                 <button onclick="resetProfile()" style="background: none; border: none; color: #95a5a6; font-size: 0.75rem; cursor: pointer;">重置档案配置</button>
             </div>
@@ -173,6 +174,12 @@
     </div>
 
     <script>
+        // ================= JSONBin.io 配置区域 =================
+        // 如果你有 JSONBin 的 Bin ID 和 Master Key，请在这里填入：
+        const JSONBIN_BIN_ID = ""; // 例如: "65b...abc"
+        const JSONBIN_API_KEY = ""; // 例如: "$2a$10$..."
+        // ========================================================
+
         const listeningArticles = [
             {
                 title: "经济与财政政策听译",
@@ -195,6 +202,11 @@
             }
             renderRoute();
             updateStats();
+            
+            // 如果配置了 JSONBin，尝试从云端拉取最新打卡状态
+            if (JSONBIN_BIN_ID && JSONBIN_API_KEY) {
+                fetchCloudData();
+            }
         }
 
         function saveProfile() {
@@ -285,6 +297,11 @@
             localStorage.setItem('yixiaokang_completed', JSON.stringify(completedSteps));
             renderRoute();
             updateStats();
+            
+            // 同步到云端
+            if (JSONBIN_BIN_ID && JSONBIN_API_KEY) {
+                syncToCloud();
+            }
         }
 
         function updateStats() {
@@ -293,6 +310,45 @@
             statusEl.innerText = allDone ? '✨ 今日已完成' : '❌ 未打卡';
             statusEl.style.color = allDone ? '#27ae60' : '#95a5a6';
         }
+
+        // ================= 云端同步核心函数 =================
+        function syncToCloud() {
+            fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Master-Key': JSONBIN_API_KEY
+                },
+                body: JSON.stringify({ completedSteps, updatedAt: new Date().toISOString() })
+            })
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('sync-indicator').innerText = '☁️ 云端同步成功 (JSONBin)';
+            })
+            .catch(err => {
+                document.getElementById('sync-indicator').innerText = '⚠️ 云端同步失败，已回退本地';
+            });
+        }
+
+        function fetchCloudData() {
+            fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}/latest`, {
+                headers: {
+                    'X-Master-Key': JSONBIN_API_KEY
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data && data.record && data.record.completedSteps) {
+                    completedSteps = data.record.completedSteps;
+                    localStorage.setItem('yixiaokang_completed', JSON.stringify(completedSteps));
+                    renderRoute();
+                    updateStats();
+                    document.getElementById('sync-indicator').innerText = '☁️ 已从 JSONBin 云端加载数据';
+                }
+            })
+            .catch(err => console.error("Fetch cloud error:", err));
+        }
+        // ====================================================
 
         function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
         function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
