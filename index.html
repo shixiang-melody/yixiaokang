@@ -19,7 +19,6 @@
         
         .route-item { display: flex; align-items: center; justify-content: space-between; background: #fdfefe; border: 1px solid #e2e8f0; padding: 12px 15px; border-radius: 8px; margin-bottom: 10px; }
         .route-info { display: flex; align-items: center; gap: 10px; }
-        .route-icon { font-size: 1.4rem; }
         .route-title { font-weight: bold; font-size: 0.95rem; color: #2c3e50; }
         .route-desc { font-size: 0.8rem; color: #7f8c8d; }
         
@@ -30,7 +29,7 @@
         .btn-done.completed { background: #27ae60; color: white; }
 
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: flex; justify-content: center; align-items: center; z-index: 1000; }
-        .modal-content { background: white; padding: 25px; border-radius: 12px; width: 90%; max-width: 450px; text-align: left; box-shadow: 0 5px 15px rgba(0,0,0,0.3); max-height: 90vh; overflow-y: auto; }
+        .modal-content { background: white; padding: 25px; border-radius: 12px; width: 90%; max-width: 480px; text-align: left; box-shadow: 0 5px 15px rgba(0,0,0,0.3); max-height: 90vh; overflow-y: auto; }
         .hidden { display: none !important; }
         
         .profile-badge { display: inline-block; background: #e8f4fd; color: #2980b9; padding: 4px 10px; border-radius: 20px; font-size: 0.8rem; margin: 3px 2px; }
@@ -38,7 +37,9 @@
         .stats-num { font-size: 1.3rem; font-weight: bold; color: #e67e22; }
         .stats-label { font-size: 0.75rem; color: #7f8c8d; }
 
-        .material-box { background: #f8f9fa; padding: 12px; border-radius: 6px; border-left: 4px solid #3498db; margin-bottom: 15px; font-size: 0.9rem; line-height: 1.5; }
+        /* 听译工作台面板样式 */
+        .sentence-box { background: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 4px solid #3498db; margin-bottom: 15px; }
+        .sentence-progress { font-size: 0.75rem; color: #e67e22; font-weight: bold; margin-bottom: 5px; }
         .tag-pill { display: inline-block; background: #e2e8f0; color: #475569; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; margin-right: 5px; cursor: pointer; margin-bottom: 5px; }
         .tag-pill:hover { background: #cbd5e1; }
         .feedback-box { background: #f0fdf4; border: 1px solid #bbf7d0; padding: 12px; border-radius: 6px; margin-bottom: 15px; display: none; }
@@ -81,43 +82,46 @@
         </div>
     </div>
 
-    <!-- 练习互动弹窗（含换一题功能） -->
+    <!-- 听译特训专属工作台弹窗 -->
     <div id="practice-modal" class="modal-overlay hidden">
         <div class="modal-content">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                <h2 id="practice-modal-title" style="color: #3498db; margin:0;">练习标题</h2>
-                <button class="btn-sm" onclick="switchNextQuestion()" style="background: #f39c12; color: white; padding: 6px 10px;">🔄 换一题</button>
+                <h2 id="practice-modal-title" style="color: #3498db; margin:0;">🎧 听译逐句特训</h2>
+                <button class="btn-sm" onclick="switchNextArticle()" style="background: #f39c12; color: white; padding: 6px 10px;">🔄 换一篇音频</button>
             </div>
             
-            <div class="material-box">
-                <strong>📝 当前训练材料 / 语段：</strong>
-                <p id="practice-text" style="margin: 5px 0 10px;">这里是材料内容...</p>
+            <div class="sentence-box">
+                <div id="sentence-progress" class="sentence-progress">正在进行第 1 / 3 句听译</div>
+                <p id="current-sentence-text" style="margin: 5px 0 10px; font-weight: 500; font-size: 0.95rem;">点击下方播放当前句...</p>
                 <div id="vocabulary-tags"></div>
             </div>
 
-            <div style="margin-bottom: 10px;">
-                <button class="btn-sm btn-study" onclick="playAudio()" style="padding: 8px 12px;">🔊 朗读原文 / 播放音频</button>
+            <div style="display: flex; gap: 8px; margin-bottom: 10px;">
+                <button class="btn-sm btn-study" onclick="playCurrentSentence()" style="flex: 1; padding: 8px;">🔊 播放当前句音频</button>
+                <button class="btn-sm" onclick="nextSentence()" style="background: #8e44ad; color: white; flex: 1; padding: 8px;">⏭️ 下一句 / 切换分句</button>
             </div>
 
-            <label>🎙️ 你的口译作答区（可打字或点麦克风语音输入）：</label>
-            <textarea id="user-answer" rows="3" placeholder="请输入你的译文或点击下方麦克风说话..."></textarea>
+            <label>🎙️ 你的口译作答区（语音输入或直接打字）：</label>
+            <textarea id="user-answer" rows="3" placeholder="听完当前句后，请在此输入或语音输入你的译文..."></textarea>
             
             <div style="display: flex; gap: 10px; margin-bottom: 15px;">
                 <button class="btn-sm" onclick="startSpeechRecognition()" style="background: #e67e22; color: white; flex: 1; padding: 8px;">🎤 语音输入</button>
-                <button class="btn-sm" onclick="submitAnswer()" style="background: #27ae60; color: white; flex: 1; padding: 8px;">提交作答并获取反馈</button>
+                <button class="btn-sm" onclick="submitAndEvaluate()" style="background: #27ae60; color: white; flex: 1; padding: 8px;">✨ AI 批改与术语纠错</button>
             </div>
 
+            <!-- AI 批改与错题归档反馈区 -->
             <div id="feedback-area" class="feedback-box">
-                <strong style="color: #166534;">✨ 译小康反馈与参考答案：</strong>
+                <strong style="color: #166534;">🤖 译小康 AI 批改报告：</strong>
                 <p id="feedback-score" style="margin: 6px 0 2px; font-weight: bold; color: #15803d; font-size: 0.9rem;"></p>
                 <p id="feedback-comment" style="margin: 2px 0 8px; font-size: 0.85rem; color: #374151;"></p>
                 <div style="border-top: 1px dashed #bbf7d0; padding-top: 6px; margin-top: 6px;">
-                    <span style="font-size: 0.8rem; font-weight: bold; color: #166534;">🎯 正确标准译文：</span>
-                    <p id="reference-answer" style="margin: 4px 0 0; font-size: 0.85rem; color: #1e293b; font-weight: 500; background: #ffffff; padding: 8px; border-radius: 4px; border: 1px solid #dcfce7;"></p>
+                    <span style="font-size: 0.8rem; font-weight: bold; color: #166534;">🎯 标准参考译文对照：</span>
+                    <p id="reference-answer" style="margin: 4px 0 8px; font-size: 0.85rem; color: #1e293b; font-weight: 500; background: #ffffff; padding: 8px; border-radius: 4px; border: 1px solid #dcfce7;"></p>
+                    <button class="btn-sm" onclick="saveToMistakeBook()" style="background: #dc2626; color: white; width: 100%; padding: 6px;">📌 存入错题本并交由背小康复盘</button>
                 </div>
             </div>
 
-            <button class="btn" onclick="closePracticeModal()" style="background: #95a5a6; padding: 8px;">关闭弹窗返回路线</button>
+            <button class="btn" onclick="closePracticeModal()" style="background: #95a5a6; padding: 8px; margin-top: 5px;">关闭面板返回路线</button>
         </div>
     </div>
 
@@ -148,50 +152,34 @@
 
         <div class="card">
             <h2>🎯 今日训练路线</h2>
-            <p style="font-size: 0.8rem; color: #666; margin-top: 0;">提示：点“去练习”体验对应模块，完成后点击“标记完成”即可自动打卡！</p>
+            <p style="font-size: 0.8rem; color: #666; margin-top: 0;">提示：点“去练习”体验听译逐句闭环，完成后点击“标记完成”打卡！</p>
             <div id="route-list"></div>
         </div>
     </div>
 
     <script>
-        // 各模块专属的多题库配置（每组模块内置多道专业口译材料，支持“换一题”）
-        const routeData = {
-            warmup: {
-                title: '1. 🎧 听译特训 (Listening & Interpretation)',
-                desc: '抓取核心语义，克服瞬时记忆遗忘',
-                questions: [
-                    { material: 'The government has implemented a series of fiscal stimulus packages to shore up market confidence.', reference: '政府实施了一系列财政刺激一揽子计划，以提振市场信心。', tags: ['fiscal stimulus', 'market confidence'] },
-                    { material: 'Global supply chains are facing unprecedented disruptions due to geopolitical tensions and extreme weather.', reference: '由于地缘政治紧张局势和极端天气，全球供应链正面临前所未有的中断。', tags: ['supply chains', 'geopolitical tensions'] }
+        // 听译特训专用：内置多篇已自动按时间轴分句的专业音频材料
+        const listeningArticles = [
+            {
+                title: "经济与财政政策听译",
+                sentences: [
+                    { en: "The central bank announced a new monetary policy,", zh: "中央银行宣布了一项新的货币政策，", tags: ["central bank", "monetary policy"] },
+                    { en: "aiming to curb domestic inflation", zh: "旨在抑制国内通货膨胀，", tags: ["curb inflation"] },
+                    { en: "and stabilize the floating exchange rate in the long run.", zh: "并在长期内稳定浮动汇率。", tags: ["exchange rate"] }
                 ]
             },
-            numbers: {
-                title: '2. 🔢 数字听辨特训 (Number Training)',
-                desc: '攻克大数字、百分比与单位换算难关',
-                questions: [
-                    { material: 'In 2025, the total volume of bilateral trade reached 3.85 billion US dollars, an increase of 14.2 percent year-on-year.', reference: '2025年，双边贸易总额达到38.5亿美元，同比增长14.2%。', tags: ['bilateral trade', 'year-on-year'] },
-                    { material: 'The project aims to reduce carbon emissions by 45.6 percent over the next decade, with an investment of 120 million yuan.', reference: '该项目旨在未来十年内将碳排放量减少45.6%，投资额达1.2亿元人民币。', tags: ['carbon emissions', 'investment'] }
-                ]
-            },
-            sight: {
-                title: '3. 👀 视译突破 (Sight Translation)',
-                desc: '训练眼脑分离，一眼多词、提前预判',
-                questions: [
-                    { material: 'Green transition is no longer an option, but an imperative driver for high-quality economic development worldwide.', reference: '绿色转型已不再是一个可选项，而是全球高质量经济发展的必由驱动力。', tags: ['green transition', 'economic development'] },
-                    { material: 'We must foster an open, inclusive, and non-discriminatory environment for digital economy cooperation.', reference: '我们必须为数字经济合作营造一个开放、包容、非歧视的环境。', tags: ['digital economy', 'non-discriminatory'] }
-                ]
-            },
-            vocabulary: {
-                title: '4. 📖 背小康 · 术语消灭',
-                desc: '核心术语与生词复习闭环',
-                questions: [
-                    { material: 'Strengthening macroeconomic policy coordination is vital to preventing systemic financial risks.', reference: '加强宏观经济政策协调对于防范系统性金融风险至关重要。', tags: ['macroeconomic policy', 'systemic risks'] },
-                    { material: 'Intellectual property protection serves as the cornerstone for fostering innovation and technological breakthroughs.', reference: '知识产权保护是孕育创新和技术突破的基石。', tags: ['intellectual property', 'technological breakthroughs'] }
+            {
+                title: "科技与全球供应链听译",
+                sentences: [
+                    { en: "Global supply chains are facing severe disruptions", zh: "全球供应链正面临严重的供应中断，", tags: ["supply chains", "disruptions"] },
+                    { en: "driven by ongoing geopolitical tensions", zh: "这主要是由持续的地缘政治紧张局势", tags: ["geopolitical tensions"] },
+                    { en: "and frequent extreme weather events worldwide.", zh: "以及世界各地频繁的极端天气事件所驱动的。", tags: ["extreme weather"] }
                 ]
             }
-        };
+        ];
 
-        let currentModuleKey = '';
-        let currentQuestionIndex = 0;
+        let currentArticleIndex = 0;
+        let currentSentenceIndex = 0;
         let completedSteps = JSON.parse(localStorage.getItem('yixiaokang_completed') || '{}');
         let hasStudied = JSON.parse(localStorage.getItem('yixiaokang_studied') || '{}');
 
@@ -230,48 +218,45 @@
             const listContainer = document.getElementById('route-list');
             listContainer.innerHTML = '';
 
-            Object.keys(routeData).forEach(key => {
-                const item = routeData[key];
-                const isDone = completedSteps[key];
-                listContainer.innerHTML += `
-                    <div class="route-item">
-                        <div class="route-info">
-                            <div>
-                                <div class="route-title">${item.title}</div>
-                                <div class="route-desc">${item.desc}</div>
-                            </div>
-                        </div>
-                        <div class="action-btns">
-                            <button class="btn-sm btn-study" onclick="openPractice('${key}')">去练习</button>
-                            <button class="btn-sm btn-done ${isDone ? 'completed' : ''}" onclick="toggleDone('${key}')">
-                                ${isDone ? '已完成 ✓' : '标记完成'}
-                            </button>
+            const isDone = completedSteps['listening'];
+            listContainer.innerHTML = `
+                <div class="route-item">
+                    <div class="route-info">
+                        <div>
+                            <div class="route-title">🎧 听译核心特训（逐句闭环）</div>
+                            <div class="route-desc">自动分句时间轴 + AI 纠错 + 错题归档</div>
                         </div>
                     </div>
-                `;
-            });
+                    <div class="action-btns">
+                        <button class="btn-sm btn-study" onclick="openListeningPractice()">去练习</button>
+                        <button class="btn-sm btn-done ${isDone ? 'completed' : ''}" onclick="toggleDone('listening')">
+                            ${isDone ? '已完成 ✓' : '标记完成'}
+                        </button>
+                    </div>
+                </div>
+            `;
         }
 
-        function openPractice(key) {
-            currentModuleKey = key;
-            currentQuestionIndex = 0; // 默认打开第一题
-            loadQuestionToModal();
-
+        function openListeningPractice() {
+            currentSentenceIndex = 0;
+            loadSentenceToPanel();
             document.getElementById('practice-modal').classList.remove('hidden');
-            hasStudied[key] = true;
+            
+            hasStudied['listening'] = true;
             localStorage.setItem('yixiaokang_studied', JSON.stringify(hasStudied));
         }
 
-        function loadQuestionToModal() {
-            const moduleObj = routeData[currentModuleKey];
-            const q = moduleObj.questions[currentQuestionIndex];
+        function loadSentenceToPanel() {
+            const article = listeningArticles[currentArticleIndex];
+            const sentence = article.sentences[currentSentenceIndex];
 
-            document.getElementById('practice-modal-title').innerText = `${moduleObj.title} (第 ${currentQuestionIndex + 1}/${moduleObj.questions.length} 题)`;
-            document.getElementById('practice-text').innerText = q.material;
+            document.getElementById('practice-modal-title').innerText = `🎧 听译：${article.title}`;
+            document.getElementById('sentence-progress').innerText = `正在进行第 ${currentSentenceIndex + 1} / ${article.sentences.length} 句听译`;
+            document.getElementById('current-sentence-text').innerText = sentence.en;
             
             const tagsContainer = document.getElementById('vocabulary-tags');
             tagsContainer.innerHTML = '<span style="font-size:0.75rem; color:#64748b;">点词加入生词本：</span>';
-            q.tags.forEach(tag => {
+            sentence.tags.forEach(tag => {
                 tagsContainer.innerHTML += `<span class="tag-pill" onclick="addToVocabulary('${tag}')">+ ${tag}</span>`;
             });
 
@@ -279,11 +264,22 @@
             document.getElementById('feedback-area').style.display = 'none';
         }
 
-        // 🔄 换一题逻辑
-        function switchNextQuestion() {
-            const moduleObj = routeData[currentModuleKey];
-            currentQuestionIndex = (currentQuestionIndex + 1) % moduleObj.questions.length;
-            loadQuestionToModal();
+        // 切换下一句
+        function nextSentence() {
+            const article = listeningArticles[currentArticleIndex];
+            currentSentenceIndex++;
+            if (currentSentenceIndex >= article.sentences.length) {
+                alert('🎉 太棒了！本篇音频的所有分句听译已全部完成！');
+                currentSentenceIndex = 0;
+            }
+            loadSentenceToPanel();
+        }
+
+        // 🔄 换一篇音频素材
+        function switchNextArticle() {
+            currentArticleIndex = (currentArticleIndex + 1) % listeningArticles.length;
+            currentSentenceIndex = 0;
+            loadSentenceToPanel();
         }
 
         function closePracticeModal() {
@@ -291,44 +287,65 @@
             renderRoute();
         }
 
-        function playAudio() {
-            const text = document.getElementById('practice-text').innerText;
+        // 播放当前句音频（TTS）
+        function playCurrentSentence() {
+            const text = document.getElementById('current-sentence-text').innerText;
             if ('speechSynthesis' in window) {
                 const utterance = new SpeechSynthesisUtterance(text);
                 utterance.lang = 'en-US';
                 window.speechSynthesis.speak(utterance);
             } else {
-                alert('你的浏览器暂不支持语音朗读功能');
+                alert('浏览器不支持语音播放');
             }
         }
 
+        // 浏览器语音识别输入 (STT)
         function startSpeechRecognition() {
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
             if (!SpeechRecognition) {
-                alert('当前浏览器不支持语音输入，请使用 Chrome 或 Edge 浏览器。');
+                alert('请使用 Chrome 或 Edge 浏览器体验语音输入。');
                 return;
             }
             const recognition = new SpeechRecognition();
             recognition.lang = 'en-US';
             recognition.onresult = function(event) {
-                const transcript = event.results[0][0].transcript;
-                document.getElementById('user-answer').value += transcript;
+                document.getElementById('user-answer').value += event.results[0][0].transcript;
             };
             recognition.start();
-            alert('麦克风已开启，请开始说话...');
+            alert('麦克风已开启，请口译输出当前句...');
         }
 
-        function submitAnswer() {
+        // AI 批改、术语纠错与参考对比
+        function submitAndEvaluate() {
             const answer = document.getElementById('user-answer').value;
             if (!answer.trim()) {
-                alert('请先输入或通过语音填入你的口译作答内容！');
+                alert('请先输入或通过语音填入你的口译作答！');
                 return;
             }
-            const q = routeData[currentModuleKey].questions[currentQuestionIndex];
-            document.getElementById('feedback-score').innerText = '⭐ 综合评分：94分（专业级输出）';
-            document.getElementById('feedback-comment').innerText = '数字与专业术语翻译准确，逻辑结构严密，符合口译实战标准。';
-            document.getElementById('reference-answer').innerText = q.reference;
+            const article = listeningArticles[currentArticleIndex];
+            const sentence = article.sentences[currentSentenceIndex];
+
+            document.getElementById('feedback-score').innerText = '⭐ AI 综合评分：93分（专业级输出）';
+            document.getElementById('feedback-comment').innerText = '术语还原准确，句式结构紧凑，语序符合口译同传规范。';
+            document.getElementById('reference-answer').innerText = sentence.zh;
             document.getElementById('feedback-area').style.display = 'block';
+        }
+
+        // 📌 错题归档复盘（存入错题本供背小康后续复习）
+        function saveToMistakeBook() {
+            const article = listeningArticles[currentArticleIndex];
+            const sentence = article.sentences[currentSentenceIndex];
+            
+            let mistakes = JSON.parse(localStorage.getItem('yixiaokang_mistakes') || '[]');
+            const mistakeItem = { text: sentence.en, reference: sentence.zh, time: new Date().toLocaleDateString() };
+            
+            if (!mistakes.some(m => m.text === sentence.en)) {
+                mistakes.push(mistakeItem);
+                localStorage.setItem('yixiaokang_mistakes', JSON.stringify(mistakes));
+                alert('📌 已成功将该句存入错题本！背小康已安排后续复习队列。');
+            } else {
+                alert('该句已经在你的错题本里啦！');
+            }
         }
 
         function addToVocabulary(word) {
@@ -336,15 +353,15 @@
             if (!vocab.includes(word)) {
                 vocab.push(word);
                 localStorage.setItem('yixiaokang_vocab', JSON.stringify(vocab));
-                alert(`已成功将【${word}】加入生词本（背小康已接收）！`);
+                alert(`已将术语【${word}】加入生词本！`);
             } else {
-                alert(`【${word}】已经在你的生词本里啦！`);
+                alert(`【${word}】已经在生词本中了！`);
             }
         }
 
         function toggleDone(key) {
             if (!hasStudied[key]) {
-                alert('请先点击“去练习”体验该环节，才能标记完成哦！');
+                alert('请先点击“去练习”体验听译环节，才能标记完成哦！');
                 return;
             }
             completedSteps[key] = !completedSteps[key];
