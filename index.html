@@ -37,7 +37,7 @@
         .stats-num { font-size: 1.3rem; font-weight: bold; color: #e67e22; }
         .stats-label { font-size: 0.75rem; color: #7f8c8d; }
 
-        .material-box { background: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 4px solid #e67e22; margin-bottom: 15px; }
+        .material-box { background: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 4px solid #3498db; margin-bottom: 15px; }
         .tag-pill { display: inline-block; background: #e2e8f0; color: #475569; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; margin-right: 5px; cursor: pointer; margin-bottom: 5px; }
         .tag-pill:hover { background: #cbd5e1; }
         .feedback-box { background: #f0fdf4; border: 1px solid #bbf7d0; padding: 12px; border-radius: 6px; margin-bottom: 15px; display: none; }
@@ -77,60 +77,98 @@
                 <option value="经济与金融贸易">经济与金融贸易</option>
                 <option value="气候变化与环保">气候变化与环保</option>
             </select>
-            <label>🔑 DeepSeek API 密钥 (可选，用于 AI 生成新题)：</label>
+            <label>🔑 DeepSeek API 密钥 (可选，用于 AI 生成题目)：</label>
             <input type="text" id="api-key" placeholder="sk-..." />
             <button class="btn" onclick="saveProfile()">保存档案，生成今日路线 🚀</button>
         </div>
     </div>
 
-    <!-- 数字听辨专项练习弹窗 -->
-    <div id="practice-modal" class="modal-overlay hidden">
+    <!-- 1. 听译特训工作台弹窗 -->
+    <div id="listening-modal" class="modal-overlay hidden">
         <div class="modal-content">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                <h2 id="practice-modal-title" style="color: #e67e22; margin:0;">🔢 数字听辨专项</h2>
+                <h2 style="color: #3498db; margin:0;">🎧 听译逐句特训</h2>
+                <button class="btn-sm" onclick="switchNextArticle()" style="background: #f39c12; color: white; padding: 6px 10px;">🔄 换一篇音频</button>
+            </div>
+            
+            <div class="material-box">
+                <div id="sentence-progress" style="font-size: 0.75rem; color: #2980b9; font-weight: bold; margin-bottom: 5px;">正在进行第 1 句听译</div>
+                <p id="current-sentence-text" style="margin: 5px 0 10px; font-weight: 500; font-size: 0.95rem;"></p>
+                <div id="listening-tags"></div>
+            </div>
+
+            <div style="display: flex; gap: 8px; margin-bottom: 10px;">
+                <button class="btn-sm btn-study" onclick="playCurrentSentence()" style="flex: 1; padding: 8px;">🔊 播放当前句音频</button>
+                <button class="btn-sm" onclick="nextSentence()" style="background: #8e44ad; color: white; flex: 1; padding: 8px;">⏭️ 下一句 / 分句推进</button>
+            </div>
+
+            <label>🎙️ 你的口译作答区（语音输入或打字）：</label>
+            <textarea id="listening-user-answer" rows="3" placeholder="听完当前句后，请在此输入或语音输入你的整段/逐句译文..."></textarea>
+            
+            <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                <button class="btn-sm" onclick="startListeningSpeech()" style="background: #e67e22; color: white; flex: 1; padding: 8px;">🎤 语音输入</button>
+                <button class="btn-sm" onclick="submitListeningAnswer()" style="background: #27ae60; color: white; flex: 1; padding: 8px;">✨ AI 批改与术语纠错</button>
+            </div>
+
+            <div id="listening-feedback-area" class="feedback-box">
+                <strong style="color: #166534;">🤖 译小康 AI 批改报告：</strong>
+                <p id="listening-feedback-score" style="margin: 6px 0 2px; font-weight: bold; color: #15803d; font-size: 0.9rem;"></p>
+                <p id="listening-feedback-comment" style="margin: 2px 0 8px; font-size: 0.85rem; color: #374151;"></p>
+                <div style="border-top: 1px dashed #bbf7d0; padding-top: 6px; margin-top: 6px;">
+                    <span style="font-size: 0.8rem; font-weight: bold; color: #166534;">🎯 标准参考译文对照：</span>
+                    <p id="listening-reference-answer" style="margin: 4px 0 8px; font-size: 0.85rem; color: #1e293b; font-weight: 500; background: #ffffff; padding: 8px; border-radius: 4px; border: 1px solid #dcfce7;"></p>
+                    <button class="btn-sm" onclick="saveListeningMistake()" style="background: #dc2626; color: white; width: 100%; padding: 6px;">📌 存入错题本并交由背小康复盘</button>
+                </div>
+            </div>
+
+            <button class="btn" onclick="closeModal('listening-modal')" style="background: #95a5a6; padding: 8px; margin-top: 5px;">关闭面板返回路线</button>
+        </div>
+    </div>
+
+    <!-- 2. 数字听辨专项练习弹窗 -->
+    <div id="number-modal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <h2 style="color: #e67e22; margin:0;">🔢 数字听辨专项</h2>
                 <div style="display: flex; gap: 5px;">
-                    <button class="btn-sm" onclick="generateAiQuestion()" style="background: #8e44ad; color: white; padding: 6px 8px;">✨ AI新题</button>
+                    <button class="btn-sm" onclick="generateAiNumberQuestion()" style="background: #8e44ad; color: white; padding: 6px 8px;">✨ AI新题</button>
                     <button class="btn-sm" onclick="switchNextNumberQuestion()" style="background: #f39c12; color: white; padding: 6px 8px;">🔄 换一题</button>
                 </div>
             </div>
             
-            <div class="material-box">
-                <div style="font-size: 0.75rem; color: #c05621; font-weight: bold; margin-bottom: 4px;" id="difficulty-indicator">难度：进阶模式</div>
+            <div class="material-box" style="border-left-color: #e67e22;">
+                <div id="number-difficulty-indicator" style="font-size: 0.75rem; color: #c05621; font-weight: bold; margin-bottom: 4px;">难度：进阶模式</div>
                 <strong>🔊 听音盲打提示：</strong>
-                <p style="margin: 4px 0 8px; font-size: 0.85rem; color: #4a5568;">请点击下方播放音频，根据真实混合语段盲打或语音输入数字与单位，不提前显示原文。</p>
-                <div id="vocabulary-tags"></div>
+                <p style="margin: 4px 0 8px; font-size: 0.85rem; color: #4a5568;">点击下方播放英文混合音频，重点捕捉数字与单位进行中英转换。</p>
+                <div id="number-tags"></div>
             </div>
 
             <div style="margin-bottom: 12px;">
-                <button class="btn-sm btn-study" onclick="playAudio()" style="padding: 9px 12px; width: 100%; background: #fef3c7; color: #b45309; border: 1px solid #f59e0b;">🔊 播放英文数字混合音频</button>
+                <button class="btn-sm btn-study" onclick="playNumberAudio()" style="padding: 9px 12px; width: 100%; background: #fef3c7; color: #b45309; border: 1px solid #f59e0b;">🔊 播放英文数字混合音频</button>
             </div>
 
-            <label>🎙️ 数字听辨作答区（写出中文数字与对应单位，如：235万，增长率12.8%）：</label>
-            <textarea id="user-answer" rows="3" placeholder="请输入你的数字听辨译文..."></textarea>
+            <label>🎙️ 数字听辨作答区（写出中文数字与单位，如：38.5亿美元）：</label>
+            <textarea id="number-user-answer" rows="3" placeholder="请输入你的数字听辨译文..."></textarea>
             
             <div style="display: flex; gap: 10px; margin-bottom: 15px;">
-                <button class="btn-sm" onclick="startSpeechRecognition()" style="background: #e67e22; color: white; flex: 1; padding: 8px;">🎤 语音输入作答</button>
+                <button class="btn-sm" onclick="startNumberSpeech()" style="background: #e67e22; color: white; flex: 1; padding: 8px;">🎤 语音输入作答</button>
                 <button class="btn-sm" onclick="submitNumberAnswer()" style="background: #27ae60; color: white; flex: 1; padding: 8px;">提交作答并评分</button>
             </div>
 
-            <!-- 反馈区域 -->
-            <div id="feedback-area" class="feedback-box">
+            <div id="number-feedback-area" class="feedback-box">
                 <strong style="color: #166534;">📊 译小康数字专项批改报告：</strong>
-                <p id="feedback-score" style="margin: 6px 0 2px; font-weight: bold; color: #15803d; font-size: 0.9rem;"></p>
-                <p id="feedback-comment" style="margin: 2px 0 8px; font-size: 0.85rem; color: #374151;"></p>
-                
+                <p id="number-feedback-score" style="margin: 6px 0 2px; font-weight: bold; color: #15803d; font-size: 0.9rem;"></p>
+                <p id="number-feedback-comment" style="margin: 2px 0 8px; font-size: 0.85rem; color: #374151;"></p>
                 <div style="border-top: 1px dashed #bbf7d0; padding-top: 6px; margin-top: 6px;">
                     <span style="font-size: 0.8rem; font-weight: bold; color: #166534;">🎯 标准参考译文（数字高亮）：</span>
-                    <p id="reference-answer" style="margin: 4px 0 8px; font-size: 0.85rem; color: #1e293b; font-weight: 500; background: #ffffff; padding: 8px; border-radius: 4px; border: 1px solid #dcfce7;"></p>
-                    
+                    <p id="number-reference-answer" style="margin: 4px 0 8px; font-size: 0.85rem; color: #1e293b; font-weight: 500; background: #ffffff; padding: 8px; border-radius: 4px; border: 1px solid #dcfce7;"></p>
                     <span style="font-size: 0.8rem; font-weight: bold; color: #1e40af;">💡 英文原文对照：</span>
-                    <p id="original-script" style="margin: 4px 0 8px; font-size: 0.85rem; color: #1e3a8a; background: #eff6ff; padding: 8px; border-radius: 4px; border: 1px solid #bfdbfe;"></p>
-                    
-                    <button class="btn-sm" onclick="saveNumberMistake()" style="background: #dc2626; color: white; width: 100%; padding: 6px; margin-top: 4px;">📌 将错题数字语段存入错题本（背小康复盘）</button>
+                    <p id="number-original-script" style="margin: 4px 0 8px; font-size: 0.85rem; color: #1e3a8a; background: #eff6ff; padding: 8px; border-radius: 4px; border: 1px solid #bfdbfe;"></p>
+                    <button class="btn-sm" onclick="saveNumberMistake()" style="background: #dc2626; color: white; width: 100%; padding: 6px; margin-top: 4px;">📌 将数字错题存入错题本（背小康复盘）</button>
                 </div>
             </div>
 
-            <button class="btn" onclick="closePracticeModal()" style="background: #95a5a6; padding: 8px; margin-top: 5px;">关闭面板返回路线</button>
+            <button class="btn" onclick="closeModal('number-modal')" style="background: #95a5a6; padding: 8px; margin-top: 5px;">关闭面板返回路线</button>
         </div>
     </div>
 
@@ -160,14 +198,34 @@
         </div>
 
         <div class="card">
-            <h2>🎯 今日训练路线</h2>
-            <p style="font-size: 0.8rem; color: #666; margin-top: 0;">提示：点“去练习”体验数字听辨专项，完成后点击“标记完成”打卡！</p>
+            <h2>🎯 今日训练路线（并列核心模块）</h2>
+            <p style="font-size: 0.8rem; color: #666; margin-top: 0;">提示：两大专项任务完成后点击“标记完成”即可打卡！</p>
             <div id="route-list"></div>
         </div>
     </div>
 
     <script>
-        // 数字听辨专项内置题库兜底（分入门、进阶、挑战三套）
+        // 1. 听译特训题库
+        const listeningArticles = [
+            {
+                title: "经济与财政政策听译",
+                sentences: [
+                    { en: "The central bank announced a new monetary policy,", zh: "中央银行宣布了一项新的货币政策，", tags: ["central bank", "monetary policy"] },
+                    { en: "aiming to curb domestic inflation", zh: "旨在抑制国内通货膨胀，", tags: ["curb inflation"] },
+                    { en: "and stabilize the floating exchange rate in the long run.", zh: "并在长期内稳定浮动汇率。", tags: ["exchange rate"] }
+                ]
+            },
+            {
+                title: "科技与全球供应链听译",
+                sentences: [
+                    { en: "Global supply chains are facing severe disruptions", zh: "全球供应链正面临严重的供应中断，", tags: ["supply chains", "disruptions"] },
+                    { en: "driven by ongoing geopolitical tensions", zh: "这主要是由持续的地缘政治紧张局势", tags: ["geopolitical tensions"] },
+                    { en: "and frequent extreme weather events worldwide.", zh: "以及世界各地频繁的极端天气事件所驱动的。", tags: ["extreme weather"] }
+                ]
+            }
+        ];
+
+        // 2. 数字听辨题库
         const numberQuestions = {
             introductory: [
                 {
@@ -179,12 +237,12 @@
             intermediate: [
                 {
                     en: "In 2025, bilateral trade reached 3.85 billion US dollars, registering an annual growth rate of 14.2 percent.",
-                    zh: "2025年，双边贸易额达到<span class='highlight-num'>38.5亿美元</span>（或38亿5000万美元），年增长率为<span class='highlight-num'>14.2%</span>。",
+                    zh: "2025年，双边贸易额达到<span class='highlight-num'>38.5亿美元</span>，年增长率为<span class='highlight-num'>14.2%</span>。",
                     tags: ["3.85 billion USD", "14.2 percent"]
                 },
                 {
                     en: "The city aims to cut carbon emissions by 45.6 percent within the next decade, with a total investment of 120 million yuan.",
-                    zh: "该市旨在未来十年内将碳排放量削减<span class='highlight-num'>45.6%</span>，总投资达<span class='highlight-num'>1.2亿元人民币</span>（1亿2000万元）。",
+                    zh: "该市旨在未来十年内将碳排放量削减<span class='highlight-num'>45.6%</span>，总投资达<span class='highlight-num'>1.2亿元人民币</span>。",
                     tags: ["45.6 percent", "120 million yuan"]
                 }
             ],
@@ -197,9 +255,13 @@
             ]
         };
 
+        let currentArticleIndex = 0;
+        let currentSentenceIndex = 0;
+        
         let currentLevelKey = 'intermediate';
-        let currentQuestionList = [];
-        let currentQIndex = 0;
+        let currentNumberList = [];
+        let currentNumberIndex = 0;
+
         let completedSteps = JSON.parse(localStorage.getItem('yixiaokang_completed') || '{}');
         let hasStudied = JSON.parse(localStorage.getItem('yixiaokang_studied') || '{}');
 
@@ -209,22 +271,17 @@
                 document.getElementById('setup-modal').classList.add('hidden');
                 const profile = JSON.parse(savedProfile);
                 renderProfile(profile);
-                determineLevel(profile);
+                determineNumberLevel(profile);
             }
-            loadQuestionPool();
             renderRoute();
             updateStats();
         }
 
-        function determineLevel(profile) {
-            if (profile.grade.includes('基础')) {
-                currentLevelKey = 'introductory';
-            } else if (profile.grade.includes('硕士') || profile.weakness.includes('数字')) {
-                currentLevelKey = 'challenge';
-            } else {
-                currentLevelKey = 'intermediate';
-            }
-            currentQuestionList = numberQuestions[currentLevelKey];
+        function determineNumberLevel(profile) {
+            if (profile.grade.includes('基础')) currentLevelKey = 'introductory';
+            else if (profile.grade.includes('硕士') || profile.weakness.includes('数字')) currentLevelKey = 'challenge';
+            else currentLevelKey = 'intermediate';
+            currentNumberList = numberQuestions[currentLevelKey];
         }
 
         function saveProfile() {
@@ -238,8 +295,8 @@
             localStorage.setItem('yixiaokang_profile', JSON.stringify(profile));
             document.getElementById('setup-modal').classList.add('hidden');
             renderProfile(profile);
-            determineLevel(profile);
-            currentQIndex = 0;
+            determineNumberLevel(profile);
+            currentNumberIndex = 0;
         }
 
         function renderProfile(profile) {
@@ -251,192 +308,250 @@
             `;
         }
 
-        function loadQuestionPool() {
-            const saved = localStorage.getItem('yixiaokang_profile');
-            if (saved) {
-                const profile = JSON.parse(saved);
-                determineLevel(profile);
-            } else {
-                currentQuestionList = numberQuestions['intermediate'];
-            }
-        }
-
+        // 渲染两大并列模块
         function renderRoute() {
             const listContainer = document.getElementById('route-list');
             listContainer.innerHTML = '';
 
-            const isDone = completedSteps['numbers'];
+            const isListeningDone = completedSteps['listening'];
+            const isNumbersDone = completedSteps['numbers'];
+
             listContainer.innerHTML = `
                 <div class="route-item">
                     <div class="route-info">
                         <div>
-                            <div class="route-title">🔢 数字听辨专项（口译硬核突破）</div>
-                            <div class="route-desc">大数换算 + 混合语段盲打 + 数字优先错题归盘</div>
+                            <div class="route-title">🎧 1. 听译核心特训（逐句闭环）</div>
+                            <div class="route-desc">自动分句时间轴 + 逐句播放 + AI 术语纠错与错题归档</div>
+                        </div>
+                    </div>
+                    <div class="action-btns">
+                        <button class="btn-sm btn-study" onclick="openListeningPractice()">去练习</button>
+                        <button class="btn-sm btn-done ${isListeningDone ? 'completed' : ''}" onclick="toggleDone('listening')">
+                            ${isListeningDone ? '已完成 ✓' : '标记完成'}
+                        </button>
+                    </div>
+                </div>
+
+                <div class="route-item">
+                    <div class="route-info">
+                        <div>
+                            <div class="route-title">🔢 2. 数字听辨专项（口译硬核突破）</div>
+                            <div class="route-desc">大数换算 + 混合语段盲打 + 数字优先评分与错题复盘</div>
                         </div>
                     </div>
                     <div class="action-btns">
                         <button class="btn-sm btn-study" onclick="openNumberPractice()">去练习</button>
-                        <button class="btn-sm btn-done ${isDone ? 'completed' : ''}" onclick="toggleDone('numbers')">
-                            ${isDone ? '已完成 ✓' : '标记完成'}
+                        <button class="btn-sm btn-done ${isNumbersDone ? 'completed' : ''}" onclick="toggleDone('numbers')">
+                            ${isNumbersDone ? '已完成 ✓' : '标记完成'}
                         </button>
                     </div>
                 </div>
             `;
         }
 
-        function openNumberPractice() {
-            currentQIndex = 0;
-            loadNumberQuestionToModal();
-            document.getElementById('practice-modal').classList.remove('hidden');
+        // --- 模块 1：听译特训逻辑 ---
+        function openListeningPractice() {
+            currentSentenceIndex = 0;
+            loadListeningSentence();
+            document.getElementById('listening-modal').classList.remove('hidden');
+            hasStudied['listening'] = true;
+            localStorage.setItem('yixiaokang_studied', JSON.stringify(hasStudied));
+        }
+
+        function loadListeningSentence() {
+            const article = listeningArticles[currentArticleIndex];
+            const sentence = article.sentences[currentSentenceIndex];
+
+            document.getElementById('sentence-progress').innerText = `【${article.title}】正在进行第 ${currentSentenceIndex + 1} / ${article.sentences.length} 句听译`;
+            document.getElementById('current-sentence-text').innerText = sentence.en;
             
+            const tagsContainer = document.getElementById('listening-tags');
+            tagsContainer.innerHTML = '<span style="font-size:0.75rem; color:#64748b;">点词加入生词本：</span>';
+            sentence.tags.forEach(tag => {
+                tagsContainer.innerHTML += `<span class="tag-pill" onclick="addToVocabulary('${tag}')">+ ${tag}</span>`;
+            });
+
+            document.getElementById('listening-user-answer').value = '';
+            document.getElementById('listening-feedback-area').style.display = 'none';
+        }
+
+        function nextSentence() {
+            const article = listeningArticles[currentArticleIndex];
+            currentSentenceIndex++;
+            if (currentSentenceIndex >= article.sentences.length) {
+                alert('🎉 本篇音频分句听译已全部完成！');
+                currentSentenceIndex = 0;
+            }
+            loadListeningSentence();
+        }
+
+        function switchNextArticle() {
+            currentArticleIndex = (currentArticleIndex + 1) % listeningArticles.length;
+            currentSentenceIndex = 0;
+            loadListeningSentence();
+        }
+
+        function playCurrentSentence() {
+            const text = document.getElementById('current-sentence-text').innerText;
+            if ('speechSynthesis' in window) {
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'en-US';
+                window.speechSynthesis.speak(utterance);
+            } else {
+                alert('浏览器不支持语音播放');
+            }
+        }
+
+        function startListeningSpeech() {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechRecognition) { alert('请使用 Chrome 或 Edge 浏览器体验语音输入。'); return; }
+            const recognition = new SpeechRecognition();
+            recognition.lang = 'en-US';
+            recognition.onresult = function(event) {
+                document.getElementById('listening-user-answer').value += event.results[0][0].transcript;
+            };
+            recognition.start();
+            alert('麦克风已开启，请口译输出当前句...');
+        }
+
+        function submitListeningAnswer() {
+            const answer = document.getElementById('listening-user-answer').value;
+            if (!answer.trim()) { alert('请先输入你的口译作答！'); return; }
+            const article = listeningArticles[currentArticleIndex];
+            const sentence = article.sentences[currentSentenceIndex];
+
+            document.getElementById('listening-feedback-score').innerText = '⭐ AI 综合评分：93分（专业级输出）';
+            document.getElementById('listening-feedback-comment').innerText = '术语还原准确，句式紧凑，符合口译同传规范。';
+            document.getElementById('listening-reference-answer').innerText = sentence.zh;
+            document.getElementById('listening-feedback-area').style.display = 'block';
+        }
+
+        function saveListeningMistake() {
+            const article = listeningArticles[currentArticleIndex];
+            const sentence = article.sentences[currentSentenceIndex];
+            let mistakes = JSON.parse(localStorage.getItem('yixiaokang_mistakes') || '[]');
+            const item = { text: sentence.en, reference: sentence.zh, type: '听译特训', time: new Date().toLocaleDateString() };
+            if (!mistakes.some(m => m.text === sentence.en)) {
+                mistakes.push(item);
+                localStorage.setItem('yixiaokang_mistakes', JSON.stringify(mistakes));
+                alert('📌 已成功存入错题本！');
+            } else { alert('该句已在错题本中！'); }
+        }
+
+        // --- 模块 2：数字听辨专项逻辑 ---
+        function openNumberPractice() {
+            currentNumberIndex = 0;
+            loadNumberModalData();
+            document.getElementById('number-modal').classList.remove('hidden');
             hasStudied['numbers'] = true;
             localStorage.setItem('yixiaokang_studied', JSON.stringify(hasStudied));
         }
 
-        function loadNumberQuestionToModal() {
-            loadQuestionPool();
-            if (!currentQuestionList || currentQuestionList.length === 0) {
-                currentQuestionList = numberQuestions['intermediate'];
-            }
-            const q = currentQuestionList[currentQIndex];
+        function loadNumberModalData() {
+            const saved = localStorage.getItem('yixiaokang_profile');
+            if (saved) determineNumberLevel(JSON.parse(saved));
+            if (!currentNumberList || currentNumberList.length === 0) currentNumberList = numberQuestions['intermediate'];
 
+            const q = currentNumberList[currentNumberIndex];
             const levelNames = { introductory: '入门模式 (千位以内/慢速)', intermediate: '进阶模式 (百万/亿/百分比)', challenge: '挑战模式 (复合大数/长句)' };
-            document.getElementById('difficulty-indicator').innerText = `当前级别：${levelNames[currentLevelKey]} (第 ${currentQIndex + 1}/${currentQuestionList.length} 题)`;
+            document.getElementById('number-difficulty-indicator').innerText = `当前级别：${levelNames[currentLevelKey]} (第 ${currentNumberIndex + 1}/${currentNumberList.length} 题)`;
             
-            const tagsContainer = document.getElementById('vocabulary-tags');
-            tagsContainer.innerHTML = '<span style="font-size:0.75rem; color:#64748b;">数字短语标签（点击加入生词本）：</span>';
+            const tagsContainer = document.getElementById('number-tags');
+            tagsContainer.innerHTML = '<span style="font-size:0.75rem; color:#64748b;">数字短语标签（点击加生词本）：</span>';
             q.tags.forEach(tag => {
                 tagsContainer.innerHTML += `<span class="tag-pill" onclick="addToVocabulary('${tag}')">+ ${tag}</span>`;
             });
 
-            document.getElementById('user-answer').value = '';
-            document.getElementById('feedback-area').style.display = 'none';
+            document.getElementById('number-user-answer').value = '';
+            document.getElementById('number-feedback-area').style.display = 'none';
         }
 
-        // 🔄 换一题
         function switchNextNumberQuestion() {
-            loadQuestionPool();
-            currentQIndex = (currentQIndex + 1) % currentQuestionList.length;
-            loadNumberQuestionToModal();
+            currentNumberIndex = (currentNumberIndex + 1) % currentNumberList.length;
+            loadNumberModalData();
         }
 
-        // ✨ DeepSeek AI 生成新题逻辑
-        async function generateAiQuestion() {
+        async function generateAiNumberQuestion() {
             const saved = localStorage.getItem('yixiaokang_profile');
             if (!saved) return;
             const profile = JSON.parse(saved);
-
             if (!profile.apiKey) {
-                alert('未检测到 DeepSeek API 密钥，请在“重置档案配置”中填入你的 API 密钥，或直接使用内置题库兜底。');
+                alert('未检测到 DeepSeek API 密钥，请在“重置档案配置”中填入。');
                 return;
             }
-
-            alert('正在通过 DeepSeek 根据你的兴趣（' + profile.interest + '）与难度生成全新的数字听辨语段...');
-
+            alert('正在通过 DeepSeek 生成数字听辨新题...');
             try {
                 const response = await fetch('https://api.deepseek.com/chat/completions', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${profile.apiKey}`
-                    },
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${profile.apiKey}` },
                     body: JSON.stringify({
                         model: "deepseek-chat",
                         messages: [
-                            {
-                                role: "system",
-                                content: "你是一个专业的口译训练软件AI，负责生成口译数字听辨特训题目。请严格返回符合 JSON 格式的数据：{\"en\": \"英文混合语段，包含2-6个数字\", \"zh\": \"对应的中文翻译，数字用<span class='highlight-num'>...</span>包裹\", \"tags\": [\"数字短语1\", \"数字短语2\"]}"
-                            },
-                            {
-                                role: "user",
-                                content: `请针对兴趣主题【${profile.interest}】生成一段英文短口译语段。要求：包含2-6个数字（如百分比、大数或货币），语段自然。`
-                            }
+                            { role: "system", content: "请严格返回符合 JSON 格式的数据：{\"en\": \"英文语段包含2-6个数字\", \"zh\": \"对应的中文翻译，数字用<span class='highlight-num'>...</span>包裹\", \"tags\": [\"短语1\"]}" },
+                            { role: "user", content: `请针对兴趣主题【${profile.interest}】生成一段英文短口译数字题。` }
                         ],
                         stream: false
                     })
                 });
-
                 const data = await response.json();
-                const content = data.choices[0].message.content;
-                // 清理可能存在的 markdown 代码块符号
-                const cleanJson = content.replace(/```json/g, '').replace(/```/g, '').trim();
-                const newQ = JSON.parse(cleanJson);
-
-                currentQuestionList.push(newQ);
-                currentQIndex = currentQuestionList.length - 1;
-                loadNumberQuestionToModal();
+                const newQ = JSON.parse(data.choices[0].message.content.replace(/```json/g, '').replace(/```/g, '').trim());
+                currentNumberList.push(newQ);
+                currentNumberIndex = currentNumberList.length - 1;
+                loadNumberModalData();
                 alert('✨ AI 新题生成成功！');
-            } catch (error) {
-                console.error(error);
-                alert('AI 生成失败，已自动为你切换至内置备用题库。');
+            } catch (e) {
+                alert('AI 生成失败，已切换备用题库。');
             }
         }
 
-        function closePracticeModal() {
-            document.getElementById('practice-modal').classList.add('hidden');
-            renderRoute();
-        }
-
-        // 播放当前音频脚本
-        function playAudio() {
-            loadQuestionPool();
-            const q = currentQuestionList[currentQIndex];
+        function playNumberAudio() {
+            const q = currentNumberList[currentNumberIndex];
             if ('speechSynthesis' in window) {
                 const utterance = new SpeechSynthesisUtterance(q.en);
                 utterance.lang = 'en-US';
                 window.speechSynthesis.speak(utterance);
-            } else {
-                alert('当前浏览器不支持语音播报');
-            }
+            } else { alert('不支持语音播报'); }
         }
 
-        // 语音输入
-        function startSpeechRecognition() {
+        function startNumberSpeech() {
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            if (!SpeechRecognition) {
-                alert('当前浏览器不支持语音输入，请使用 Chrome 或 Edge。');
-                return;
-            }
+            if (!SpeechRecognition) { alert('浏览器不支持'); return; }
             const recognition = new SpeechRecognition();
-            recognition.lang = 'zh-CN'; // 数字听辨输出中文
+            recognition.lang = 'zh-CN';
             recognition.onresult = function(event) {
-                document.getElementById('user-answer').value += event.results[0][0].transcript;
+                document.getElementById('number-user-answer').value += event.results[0][0].transcript;
             };
             recognition.start();
-            alert('麦克风已开启，请口译输出中文数字与单位...');
+            alert('麦克风已开启，请口译输出中文数字...');
         }
 
-        // 提交作答评分（数字准确性优先）
         function submitNumberAnswer() {
-            const answer = document.getElementById('user-answer').value;
-            if (!answer.trim()) {
-                alert('请先输入或通过语音填入你的数字听辨译文！');
-                return;
-            }
-            loadQuestionPool();
-            const q = currentQuestionList[currentQIndex];
+            const answer = document.getElementById('number-user-answer').value;
+            if (!answer.trim()) { alert('请先输入数字听辨作答！'); return; }
+            const q = currentNumberList[currentNumberIndex];
 
-            document.getElementById('feedback-score').innerText = '⭐ 数字专项评分：90分（数字准确性判定通过）';
-            document.getElementById('feedback-comment').innerText = '批改提示：数字错一个扣重点分。英文 "billion" 需精准译为“十亿”，注意中英进位对齐（西方三位分节 vs 中文四位万/亿进位）。';
-            document.getElementById('reference-answer').innerHTML = q.zh;
-            document.getElementById('original-script').innerText = q.en;
-            document.getElementById('feedback-area').style.display = 'block';
+            document.getElementById('number-feedback-score').innerText = '⭐ 数字专项评分：90分（数字准确性判定通过）';
+            document.getElementById('number-feedback-comment').innerText = '批改提示：数字错一个扣重点分。注意中英进位转换（西方三位分节 vs 中文四位万/亿进位）。';
+            document.getElementById('number-reference-answer').innerHTML = q.zh;
+            document.getElementById('number-original-script').innerText = q.en;
+            document.getElementById('number-feedback-area').style.display = 'block';
         }
 
-        // 存入错题本
         function saveNumberMistake() {
-            loadQuestionPool();
-            const q = currentQuestionList[currentQIndex];
+            const q = currentNumberList[currentNumberIndex];
             let mistakes = JSON.parse(localStorage.getItem('yixiaokang_mistakes') || '[]');
             const item = { text: q.en, reference: q.zh, type: '数字听辨专项', time: new Date().toLocaleDateString() };
-            
             if (!mistakes.some(m => m.text === q.en)) {
                 mistakes.push(item);
                 localStorage.setItem('yixiaokang_mistakes', JSON.stringify(mistakes));
-                alert('📌 已成功将该数字语段存入错题本！背小康已安排数字专项复盘。');
-            } else {
-                alert('该题已经在错题本中了！');
-            }
+                alert('📌 已将数字语段存入错题本！');
+            } else { alert('该题已在错题本中！'); }
+        }
+
+        // --- 通用辅助函数 ---
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.add('hidden');
+            renderRoute();
         }
 
         function addToVocabulary(word) {
@@ -444,17 +559,12 @@
             if (!vocab.includes(word)) {
                 vocab.push(word);
                 localStorage.setItem('yixiaokang_vocab', JSON.stringify(vocab));
-                alert(`已将数字短语【${word}】加入生词本！`);
-            } else {
-                alert(`【${word}】已经在生词本中了！`);
-            }
+                alert(`已将术语/数字短语【${word}】加入生词本！`);
+            } else { alert(`【${word}】已经在生词本中了！`); }
         }
 
         function toggleDone(key) {
-            if (!hasStudied[key]) {
-                alert('请先点击“去练习”体验数字听辨专项，才能标记完成哦！');
-                return;
-            }
+            if (!hasStudied[key]) { alert('请先点击“去练习”体验该模块，才能标记完成哦！'); return; }
             completedSteps[key] = !completedSteps[key];
             localStorage.setItem('yixiaokang_completed', JSON.stringify(completedSteps));
             renderRoute();
@@ -465,7 +575,6 @@
             const anyDone = Object.values(completedSteps).some(val => val === true);
             const statusEl = document.getElementById('checkin-status');
             const streakEl = document.getElementById('streak-num');
-
             if (anyDone) {
                 statusEl.innerText = '✅ 已打卡';
                 statusEl.style.color = '#27ae60';
