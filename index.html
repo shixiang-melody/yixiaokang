@@ -5,18 +5,126 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>yixiaokang - 口译辅助学习</title>
     <style>
-        body { font-family: sans-serif; text-align: center; margin-top: 50px; background: #f4f6f9; color: #333; }
-        h1 { color: #2c3e50; }
-        .card { background: white; padding: 20px; margin: 20px auto; width: 80%; max-width: 400px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        button { background: #42b983; color: white; border: none; padding: 10px 20px; border-radius: 5px; font-size: 16px; cursor: pointer; }
-        button:hover { background: #3aa876; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; text-align: center; margin: 0; background: #f4f6f9; color: #333; }
+        header { background: #2c3e50; color: white; padding: 20px; }
+        .card { background: white; padding: 20px; margin: 20px auto; width: 90%; max-width: 450px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); text-align: left; }
+        .card h2 { margin-top: 0; color: #2c3e50; font-size: 1.2rem; }
+        label { display: block; margin: 10px 0 5px; font-weight: bold; font-size: 0.9rem; }
+        select, input { width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
+        button { background: #3498db; color: white; border: none; padding: 12px; width: 100%; border-radius: 6px; font-size: 16px; cursor: pointer; font-weight: bold; }
+        button:hover { background: #2980b9; }
+        
+        /* 弹窗遮罩层 */
+        #setup-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: flex; justify-content: center; align-items: center; z-index: 1000; }
+        .modal-content { background: white; padding: 30px; border-radius: 12px; width: 90%; max-width: 400px; text-align: left; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+        .hidden { display: none !important; }
+        .profile-badge { display: inline-block; background: #e8f4fd; color: #2980b9; padding: 5px 10px; border-radius: 20px; font-size: 0.85rem; margin: 5px 3px; }
     </style>
 </head>
 <body>
-    <h1>🎧 译小康 · 口译训练场</h1>
-    <div class="card">
-        <p>欢迎来到 yixiaokang 网页版！</p>
-        <button onclick="alert('打卡成功！欢迎开启今天的口译学习！')">点我今日打卡</button>
+
+    <!-- 30秒建档弹窗 (首次打开或未建档时显示) -->
+    <div id="setup-modal">
+        <div class="modal-content">
+            <h2>✨ 30 秒定制你的口译路线</h2>
+            <p style="font-size: 0.85rem; color: #666;">告诉小康你的现状，为你量身生成专属练习。</p>
+            
+            <label>🎓 你的年级 / 阶段：</label>
+            <select id="grade">
+                <option value="大一 / 大二基础阶段">大一 / 大二基础阶段</option>
+                <option value="大三 / 大四专业阶段">大三 / 大四专业阶段</option>
+                <option value="MTI 口译硕士 / 备考">MTI 口译硕士 / 备考</option>
+                <option value="职场进阶 / 爱好提升">职场进阶 / 爱好提升</option>
+            </select>
+
+            <label>⚡ 目前最大薄弱环节：</label>
+            <select id="weakness">
+                <option value="数字听辨反应慢">数字听辨反应慢</option>
+                <option value="短时记忆容量不足">短时记忆容量不足</option>
+                <option value="视译脱节 / 脑译不分家">视译脱节 / 脑译不分家</option>
+                <option value="高级词汇与术语匮乏">高级词汇与术语匮乏</option>
+            </select>
+
+            <label>⏱️ 每日练习时长：</label>
+            <select id="time-limit">
+                <option value="15分钟（轻量打卡）">15分钟（轻量打卡）</option>
+                <option value="30分钟（标准突破）">30分钟（标准突破）</option>
+                <option value="60分钟（高强特训）">60分钟（高强特训）</option>
+            </select>
+
+            <label>🌱 兴趣主题：</label>
+            <select id="interest">
+                <option value="科技与人工智能">科技与人工智能</option>
+                <option value="外交与国际政治">外交与国际政治</option>
+                <option value="经济与金融贸易">经济与金融贸易</option>
+                <option value="气候变化与环保">气候变化与环保</option>
+            </select>
+
+            <button onclick="saveProfile()">保存档案，开启训练 🚀</button>
+        </div>
     </div>
+
+    <!-- 主界面 -->
+    <header>
+        <h1>🎧 yixiaokang · 口译训练场</h1>
+        <p id="user-welcome" style="margin: 5px 0 0; font-size: 0.9rem; opacity: 0.9;"></p>
+    </header>
+
+    <div class="card">
+        <h2>📊 今日成长档案</h2>
+        <div id="profile-tags"></div>
+        <p style="margin-bottom: 5px; color: #666; font-size: 0.9rem;">修改档案或重新建档：</p>
+        <button onclick="resetProfile()" style="background: #95a5a6; padding: 8px; font-size: 14px;">重置个人档案</button>
+    </div>
+
+    <script>
+        // 页面加载时检查是否已经建过档
+        window.onload = function() {
+            const savedProfile = localStorage.getItem('yixiaokang_profile');
+            if (savedProfile) {
+                // 如果建过档，隐藏弹窗并渲染数据
+                document.getElementById('setup-modal').classList.add('hidden');
+                renderProfile(JSON.parse(savedProfile));
+            }
+        }
+
+        // 保存档案函数
+        function saveProfile() {
+            const profile = {
+                grade: document.getElementById('grade').value,
+                weakness: document.getElementById('weakness').value,
+                timeLimit: document.getElementById('time-limit').value,
+                interest: document.getElementById('interest').value
+            };
+            
+            // 存入浏览器本地存储
+            localStorage.setItem('yixiaokang_profile', JSON.stringify(profile));
+            
+            // 隐藏弹窗
+            document.getElementById('setup-modal').classList.add('hidden');
+            
+            // 渲染数据
+            renderProfile(profile);
+        }
+
+        // 渲染档案到主界面
+        function renderProfile(profile) {
+            document.getElementById('user-welcome').innerText = `当前路线：${profile.interest}方向 | 目标每日 ${profile.timeLimit}`;
+            
+            const tagsContainer = document.getElementById('profile-tags');
+            tagsContainer.innerHTML = `
+                <div class="profile-badge">🎓 ${profile.grade}</div>
+                <div class="profile-badge">⚡ 薄弱：${profile.weakness}</div>
+                <div class="profile-badge">⏱️ ${profile.timeLimit}</div>
+                <div class="profile-badge">🌱 兴趣：${profile.interest}</div>
+            `;
+        }
+
+        // 重置档案（方便测试）
+        function resetProfile() {
+            localStorage.removeItem('yixiaokang_profile');
+            document.getElementById('setup-modal').classList.remove('hidden');
+        }
+    </script>
 </body>
 </html>
