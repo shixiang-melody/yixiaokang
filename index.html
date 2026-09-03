@@ -41,8 +41,6 @@
         .material-box { background: #f8f9fa; padding: 12px; border-radius: 6px; border-left: 4px solid #3498db; margin-bottom: 15px; font-size: 0.9rem; line-height: 1.5; }
         .tag-pill { display: inline-block; background: #e2e8f0; color: #475569; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; margin-right: 5px; cursor: pointer; margin-bottom: 5px; }
         .tag-pill:hover { background: #cbd5e1; }
-        
-        /* 反馈框样式优化 */
         .feedback-box { background: #f0fdf4; border: 1px solid #bbf7d0; padding: 12px; border-radius: 6px; margin-bottom: 15px; display: none; }
     </style>
 </head>
@@ -83,13 +81,16 @@
         </div>
     </div>
 
-    <!-- 练习内容互动弹窗 -->
+    <!-- 练习互动弹窗（含换一题功能） -->
     <div id="practice-modal" class="modal-overlay hidden">
         <div class="modal-content">
-            <h2 id="practice-modal-title" style="color: #3498db; margin-top:0;">练习标题</h2>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <h2 id="practice-modal-title" style="color: #3498db; margin:0;">练习标题</h2>
+                <button class="btn-sm" onclick="switchNextQuestion()" style="background: #f39c12; color: white; padding: 6px 10px;">🔄 换一题</button>
+            </div>
             
             <div class="material-box">
-                <strong>📝 练习材料 / 原文：</strong>
+                <strong>📝 当前训练材料 / 语段：</strong>
                 <p id="practice-text" style="margin: 5px 0 10px;">这里是材料内容...</p>
                 <div id="vocabulary-tags"></div>
             </div>
@@ -106,7 +107,6 @@
                 <button class="btn-sm" onclick="submitAnswer()" style="background: #27ae60; color: white; flex: 1; padding: 8px;">提交作答并获取反馈</button>
             </div>
 
-            <!-- 包含正确/标准答案的反馈区 -->
             <div id="feedback-area" class="feedback-box">
                 <strong style="color: #166534;">✨ 译小康反馈与参考答案：</strong>
                 <p id="feedback-score" style="margin: 6px 0 2px; font-weight: bold; color: #15803d; font-size: 0.9rem;"></p>
@@ -148,43 +148,52 @@
 
         <div class="card">
             <h2>🎯 今日训练路线</h2>
-            <p style="font-size: 0.8rem; color: #666; margin-top: 0;">提示：点“去练习”体验对应模块, 完成后点击“标记完成”即可自动打卡！</p>
+            <p style="font-size: 0.8rem; color: #666; margin-top: 0;">提示：点“去练习”体验对应模块，完成后点击“标记完成”即可自动打卡！</p>
             <div id="route-list"></div>
         </div>
     </div>
 
     <script>
-        // 每条路线配备对应的标准参考答案
-        const routeSteps = [
-            { 
-                id: 'warmup', icon: '🔥', title: '1. 语前热身与跟读', desc: '激活口腔肌肉与英语语感', 
-                material: 'Good morning, ladies and gentlemen. Welcome to today\'s summit on sustainable development.', 
-                reference: '各位女士、各位先生，早上好。欢迎出席今天的可持续发展峰会。',
-                tags: ['sustainable development', 'summit'] 
+        // 各模块专属的多题库配置（每组模块内置多道专业口译材料，支持“换一题”）
+        const routeData = {
+            warmup: {
+                title: '1. 🎧 听译特训 (Listening & Interpretation)',
+                desc: '抓取核心语义，克服瞬时记忆遗忘',
+                questions: [
+                    { material: 'The government has implemented a series of fiscal stimulus packages to shore up market confidence.', reference: '政府实施了一系列财政刺激一揽子计划，以提振市场信心。', tags: ['fiscal stimulus', 'market confidence'] },
+                    { material: 'Global supply chains are facing unprecedented disruptions due to geopolitical tensions and extreme weather.', reference: '由于地缘政治紧张局势和极端天气，全球供应链正面临前所未有的中断。', tags: ['supply chains', 'geopolitical tensions'] }
+                ]
             },
-            { 
-                id: 'listening', icon: '🎧', title: '2. 听译特训', desc: '听取音频并进行口译输出', 
-                material: 'The central bank announced a new monetary policy to curb inflation and stabilize the exchange rate.', 
-                reference: '中央银行宣布了一项新的货币政策，以抑制通货膨胀并稳定汇率。',
-                tags: ['monetary policy', 'curb inflation', 'exchange rate'] 
+            numbers: {
+                title: '2. 🔢 数字听辨特训 (Number Training)',
+                desc: '攻克大数字、百分比与单位换算难关',
+                questions: [
+                    { material: 'In 2025, the total volume of bilateral trade reached 3.85 billion US dollars, an increase of 14.2 percent year-on-year.', reference: '2025年，双边贸易总额达到38.5亿美元，同比增长14.2%。', tags: ['bilateral trade', 'year-on-year'] },
+                    { material: 'The project aims to reduce carbon emissions by 45.6 percent over the next decade, with an investment of 120 million yuan.', reference: '该项目旨在未来十年内将碳排放量减少45.6%，投资额达1.2亿元人民币。', tags: ['carbon emissions', 'investment'] }
+                ]
             },
-            { 
-                id: 'sight', icon: '👀', title: '3. 视译突破', desc: '对照文本快速进行交传/视译', 
-                material: 'Artificial intelligence is reshaping the global industrial chain at an unprecedented speed.', 
-                reference: '人工智能正以空前的速度重塑全球产业链。',
-                tags: ['artificial intelligence', 'industrial chain'] 
+            sight: {
+                title: '3. 👀 视译突破 (Sight Translation)',
+                desc: '训练眼脑分离，一眼多词、提前预判',
+                questions: [
+                    { material: 'Green transition is no longer an option, but an imperative driver for high-quality economic development worldwide.', reference: '绿色转型已不再是一个可选项，而是全球高质量经济发展的必由驱动力。', tags: ['green transition', 'economic development'] },
+                    { material: 'We must foster an open, inclusive, and non-discriminatory environment for digital economy cooperation.', reference: '我们必须为数字经济合作营造一个开放、包容、非歧视的环境。', tags: ['digital economy', 'non-discriminatory'] }
+                ]
             },
-            { 
-                id: 'vocabulary', icon: '📖', title: '4. 背小康·核心词汇', desc: '记忆今日新词与错题复习', 
-                material: 'Review today\'s core phrases and build your active vocabulary storage.', 
-                reference: '复习今日核心短语，并建立你的主动词汇库。',
-                tags: ['core phrases', 'active vocabulary'] 
+            vocabulary: {
+                title: '4. 📖 背小康 · 术语消灭',
+                desc: '核心术语与生词复习闭环',
+                questions: [
+                    { material: 'Strengthening macroeconomic policy coordination is vital to preventing systemic financial risks.', reference: '加强宏观经济政策协调对于防范系统性金融风险至关重要。', tags: ['macroeconomic policy', 'systemic risks'] },
+                    { material: 'Intellectual property protection serves as the cornerstone for fostering innovation and technological breakthroughs.', reference: '知识产权保护是孕育创新和技术突破的基石。', tags: ['intellectual property', 'technological breakthroughs'] }
+                ]
             }
-        ];
+        };
 
+        let currentModuleKey = '';
+        let currentQuestionIndex = 0;
         let completedSteps = JSON.parse(localStorage.getItem('yixiaokang_completed') || '{}');
         let hasStudied = JSON.parse(localStorage.getItem('yixiaokang_studied') || '{}');
-        let currentStepData = null;
 
         window.onload = function() {
             const savedProfile = localStorage.getItem('yixiaokang_profile');
@@ -221,20 +230,20 @@
             const listContainer = document.getElementById('route-list');
             listContainer.innerHTML = '';
 
-            routeSteps.forEach(step => {
-                const isDone = completedSteps[step.id];
+            Object.keys(routeData).forEach(key => {
+                const item = routeData[key];
+                const isDone = completedSteps[key];
                 listContainer.innerHTML += `
                     <div class="route-item">
                         <div class="route-info">
-                            <div class="route-icon">${step.icon}</div>
                             <div>
-                                <div class="route-title">${step.title}</div>
-                                <div class="route-desc">${step.desc}</div>
+                                <div class="route-title">${item.title}</div>
+                                <div class="route-desc">${item.desc}</div>
                             </div>
                         </div>
                         <div class="action-btns">
-                            <button class="btn-sm btn-study" onclick="openPractice('${step.id}')">去练习</button>
-                            <button class="btn-sm btn-done ${isDone ? 'completed' : ''}" onclick="toggleDone('${step.id}')">
+                            <button class="btn-sm btn-study" onclick="openPractice('${key}')">去练习</button>
+                            <button class="btn-sm btn-done ${isDone ? 'completed' : ''}" onclick="toggleDone('${key}')">
                                 ${isDone ? '已完成 ✓' : '标记完成'}
                             </button>
                         </div>
@@ -243,24 +252,38 @@
             });
         }
 
-        function openPractice(id) {
-            currentStepData = routeSteps.find(s => s.id === id);
-            
-            document.getElementById('practice-modal-title').innerText = currentStepData.title;
-            document.getElementById('practice-text').innerText = currentStepData.material;
+        function openPractice(key) {
+            currentModuleKey = key;
+            currentQuestionIndex = 0; // 默认打开第一题
+            loadQuestionToModal();
+
+            document.getElementById('practice-modal').classList.remove('hidden');
+            hasStudied[key] = true;
+            localStorage.setItem('yixiaokang_studied', JSON.stringify(hasStudied));
+        }
+
+        function loadQuestionToModal() {
+            const moduleObj = routeData[currentModuleKey];
+            const q = moduleObj.questions[currentQuestionIndex];
+
+            document.getElementById('practice-modal-title').innerText = `${moduleObj.title} (第 ${currentQuestionIndex + 1}/${moduleObj.questions.length} 题)`;
+            document.getElementById('practice-text').innerText = q.material;
             
             const tagsContainer = document.getElementById('vocabulary-tags');
             tagsContainer.innerHTML = '<span style="font-size:0.75rem; color:#64748b;">点词加入生词本：</span>';
-            currentStepData.tags.forEach(tag => {
+            q.tags.forEach(tag => {
                 tagsContainer.innerHTML += `<span class="tag-pill" onclick="addToVocabulary('${tag}')">+ ${tag}</span>`;
             });
 
             document.getElementById('user-answer').value = '';
             document.getElementById('feedback-area').style.display = 'none';
-            document.getElementById('practice-modal').classList.remove('hidden');
+        }
 
-            hasStudied[id] = true;
-            localStorage.setItem('yixiaokang_studied', JSON.stringify(hasStudied));
+        // 🔄 换一题逻辑
+        function switchNextQuestion() {
+            const moduleObj = routeData[currentModuleKey];
+            currentQuestionIndex = (currentQuestionIndex + 1) % moduleObj.questions.length;
+            loadQuestionToModal();
         }
 
         function closePracticeModal() {
@@ -301,10 +324,10 @@
                 alert('请先输入或通过语音填入你的口译作答内容！');
                 return;
             }
-            // 填入评分反馈和对应的正确参考答案
-            document.getElementById('feedback-score').innerText = '⭐ 综合评分：92分';
-            document.getElementById('feedback-comment').innerText = '译文结构清晰，核心术语翻译准确，符合口译逻辑。';
-            document.getElementById('reference-answer').innerText = currentStepData.reference;
+            const q = routeData[currentModuleKey].questions[currentQuestionIndex];
+            document.getElementById('feedback-score').innerText = '⭐ 综合评分：94分（专业级输出）';
+            document.getElementById('feedback-comment').innerText = '数字与专业术语翻译准确，逻辑结构严密，符合口译实战标准。';
+            document.getElementById('reference-answer').innerText = q.reference;
             document.getElementById('feedback-area').style.display = 'block';
         }
 
@@ -319,12 +342,12 @@
             }
         }
 
-        function toggleDone(id) {
-            if (!hasStudied[id]) {
+        function toggleDone(key) {
+            if (!hasStudied[key]) {
                 alert('请先点击“去练习”体验该环节，才能标记完成哦！');
                 return;
             }
-            completedSteps[id] = !completedSteps[id];
+            completedSteps[key] = !completedSteps[key];
             localStorage.setItem('yixiaokang_completed', JSON.stringify(completedSteps));
             renderRoute();
             updateStats();
