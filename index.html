@@ -17,7 +17,6 @@
         .btn { background: #3498db; color: white; border: none; padding: 12px; width: 100%; border-radius: 6px; font-size: 16px; cursor: pointer; font-weight: bold; }
         .btn:hover { background: #2980b9; }
         
-        /* 路线环节卡片 */
         .route-item { display: flex; align-items: center; justify-content: space-between; background: #fdfefe; border: 1px solid #e2e8f0; padding: 12px 15px; border-radius: 8px; margin-bottom: 10px; }
         .route-info { display: flex; align-items: center; gap: 10px; }
         .route-icon { font-size: 1.4rem; }
@@ -30,7 +29,6 @@
         .btn-done { background: #eafaf1; color: #27ae60; }
         .btn-done.completed { background: #27ae60; color: white; }
 
-        /* 通用弹窗遮罩 */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: flex; justify-content: center; align-items: center; z-index: 1000; }
         .modal-content { background: white; padding: 25px; border-radius: 12px; width: 90%; max-width: 450px; text-align: left; box-shadow: 0 5px 15px rgba(0,0,0,0.3); max-height: 90vh; overflow-y: auto; }
         .hidden { display: none !important; }
@@ -40,10 +38,12 @@
         .stats-num { font-size: 1.3rem; font-weight: bold; color: #e67e22; }
         .stats-label { font-size: 0.75rem; color: #7f8c8d; }
 
-        /* 练习面板内部样式 */
         .material-box { background: #f8f9fa; padding: 12px; border-radius: 6px; border-left: 4px solid #3498db; margin-bottom: 15px; font-size: 0.9rem; line-height: 1.5; }
         .tag-pill { display: inline-block; background: #e2e8f0; color: #475569; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; margin-right: 5px; cursor: pointer; margin-bottom: 5px; }
         .tag-pill:hover { background: #cbd5e1; }
+        
+        /* 反馈框样式优化 */
+        .feedback-box { background: #f0fdf4; border: 1px solid #bbf7d0; padding: 12px; border-radius: 6px; margin-bottom: 15px; display: none; }
     </style>
 </head>
 <body>
@@ -106,10 +106,15 @@
                 <button class="btn-sm" onclick="submitAnswer()" style="background: #27ae60; color: white; flex: 1; padding: 8px;">提交作答并获取反馈</button>
             </div>
 
-            <div id="feedback-area" style="background: #fdfefe; border: 1px dashed #cbd5e1; padding: 10px; border-radius: 6px; margin-bottom: 15px; display: none;">
-                <strong>💡 译小康反馈：</strong>
-                <p id="feedback-text" style="margin: 5px 0; font-size: 0.85rem; color: #475569;"></p>
-                <p id="reference-answer" style="margin: 5px 0; font-size: 0.85rem; color: #1e293b; font-weight: bold;"></p>
+            <!-- 包含正确/标准答案的反馈区 -->
+            <div id="feedback-area" class="feedback-box">
+                <strong style="color: #166534;">✨ 译小康反馈与参考答案：</strong>
+                <p id="feedback-score" style="margin: 6px 0 2px; font-weight: bold; color: #15803d; font-size: 0.9rem;"></p>
+                <p id="feedback-comment" style="margin: 2px 0 8px; font-size: 0.85rem; color: #374151;"></p>
+                <div style="border-top: 1px dashed #bbf7d0; padding-top: 6px; margin-top: 6px;">
+                    <span style="font-size: 0.8rem; font-weight: bold; color: #166534;">🎯 正确标准译文：</span>
+                    <p id="reference-answer" style="margin: 4px 0 0; font-size: 0.85rem; color: #1e293b; font-weight: 500; background: #ffffff; padding: 8px; border-radius: 4px; border: 1px solid #dcfce7;"></p>
+                </div>
             </div>
 
             <button class="btn" onclick="closePracticeModal()" style="background: #95a5a6; padding: 8px;">关闭弹窗返回路线</button>
@@ -143,22 +148,43 @@
 
         <div class="card">
             <h2>🎯 今日训练路线</h2>
-            <p style="font-size: 0.8rem; color: #666; margin-top: 0;">提示：点“去练习”体验对应模块，完成后点击“标记完成”即可自动打卡！</p>
+            <p style="font-size: 0.8rem; color: #666; margin-top: 0;">提示：点“去练习”体验对应模块, 完成后点击“标记完成”即可自动打卡！</p>
             <div id="route-list"></div>
         </div>
     </div>
 
     <script>
+        // 每条路线配备对应的标准参考答案
         const routeSteps = [
-            { id: 'warmup', icon: '🔥', title: '1. 语前热身与跟读', desc: '激活口腔肌肉与英语语感', material: 'Good morning, ladies and gentlemen. Welcome to today\'s summit on sustainable development.', tags: ['sustainable development', 'summit'] },
-            { id: 'listening', icon: '🎧', title: '2. 听译特训', desc: '听取音频并进行口译输出', material: 'The central bank announced a new monetary policy to curb inflation and stabilize the exchange rate.', tags: ['monetary policy', 'curb inflation', 'exchange rate'] },
-            { id: 'sight', icon: '👀', title: '3. 视译突破', desc: '对照文本快速进行交传/视译', material: 'Artificial intelligence is reshaping the global industrial chain at an unprecedented speed.', tags: ['artificial intelligence', 'industrial chain'] },
-            { id: 'vocabulary', icon: '📖', title: '4. 背小康·核心词汇', desc: '记忆今日新词与错题复习', material: 'Review today\'s core phrases and build your active vocabulary storage.', tags: ['core phrases', 'active vocabulary'] }
+            { 
+                id: 'warmup', icon: '🔥', title: '1. 语前热身与跟读', desc: '激活口腔肌肉与英语语感', 
+                material: 'Good morning, ladies and gentlemen. Welcome to today\'s summit on sustainable development.', 
+                reference: '各位女士、各位先生，早上好。欢迎出席今天的可持续发展峰会。',
+                tags: ['sustainable development', 'summit'] 
+            },
+            { 
+                id: 'listening', icon: '🎧', title: '2. 听译特训', desc: '听取音频并进行口译输出', 
+                material: 'The central bank announced a new monetary policy to curb inflation and stabilize the exchange rate.', 
+                reference: '中央银行宣布了一项新的货币政策，以抑制通货膨胀并稳定汇率。',
+                tags: ['monetary policy', 'curb inflation', 'exchange rate'] 
+            },
+            { 
+                id: 'sight', icon: '👀', title: '3. 视译突破', desc: '对照文本快速进行交传/视译', 
+                material: 'Artificial intelligence is reshaping the global industrial chain at an unprecedented speed.', 
+                reference: '人工智能正以空前的速度重塑全球产业链。',
+                tags: ['artificial intelligence', 'industrial chain'] 
+            },
+            { 
+                id: 'vocabulary', icon: '📖', title: '4. 背小康·核心词汇', desc: '记忆今日新词与错题复习', 
+                material: 'Review today\'s core phrases and build your active vocabulary storage.', 
+                reference: '复习今日核心短语，并建立你的主动词汇库。',
+                tags: ['core phrases', 'active vocabulary'] 
+            }
         ];
 
         let completedSteps = JSON.parse(localStorage.getItem('yixiaokang_completed') || '{}');
         let hasStudied = JSON.parse(localStorage.getItem('yixiaokang_studied') || '{}');
-        let currentActiveId = '';
+        let currentStepData = null;
 
         window.onload = function() {
             const savedProfile = localStorage.getItem('yixiaokang_profile');
@@ -217,18 +243,15 @@
             });
         }
 
-        // 打开练习弹窗
         function openPractice(id) {
-            currentActiveId = id;
-            const stepData = routeSteps.find(s => s.id === id);
+            currentStepData = routeSteps.find(s => s.id === id);
             
-            document.getElementById('practice-modal-title').innerText = stepData.title;
-            document.getElementById('practice-text').innerText = stepData.material;
+            document.getElementById('practice-modal-title').innerText = currentStepData.title;
+            document.getElementById('practice-text').innerText = currentStepData.material;
             
-            // 渲染原文词签
             const tagsContainer = document.getElementById('vocabulary-tags');
             tagsContainer.innerHTML = '<span style="font-size:0.75rem; color:#64748b;">点词加入生词本：</span>';
-            stepData.tags.forEach(tag => {
+            currentStepData.tags.forEach(tag => {
                 tagsContainer.innerHTML += `<span class="tag-pill" onclick="addToVocabulary('${tag}')">+ ${tag}</span>`;
             });
 
@@ -236,7 +259,6 @@
             document.getElementById('feedback-area').style.display = 'none';
             document.getElementById('practice-modal').classList.remove('hidden');
 
-            // 标记为已学过
             hasStudied[id] = true;
             localStorage.setItem('yixiaokang_studied', JSON.stringify(hasStudied));
         }
@@ -246,7 +268,6 @@
             renderRoute();
         }
 
-        // 浏览器语音朗读 (TTS)
         function playAudio() {
             const text = document.getElementById('practice-text').innerText;
             if ('speechSynthesis' in window) {
@@ -258,7 +279,6 @@
             }
         }
 
-        // 浏览器语音输入 (STT)
         function startSpeechRecognition() {
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
             if (!SpeechRecognition) {
@@ -275,19 +295,19 @@
             alert('麦克风已开启，请开始说话...');
         }
 
-        // 提交作答获取反馈
         function submitAnswer() {
             const answer = document.getElementById('user-answer').value;
             if (!answer.trim()) {
                 alert('请先输入或通过语音填入你的口译作答内容！');
                 return;
             }
-            document.getElementById('feedback-text').innerText = '评分：92分。译文流畅，专业术语准确，注意语速的连贯性。';
-            document.getElementById('reference-answer').innerText = '参考标准译文：保持了原文的核心逻辑与专业词汇精度。';
+            // 填入评分反馈和对应的正确参考答案
+            document.getElementById('feedback-score').innerText = '⭐ 综合评分：92分';
+            document.getElementById('feedback-comment').innerText = '译文结构清晰，核心术语翻译准确，符合口译逻辑。';
+            document.getElementById('reference-answer').innerText = currentStepData.reference;
             document.getElementById('feedback-area').style.display = 'block';
         }
 
-        // 词签加入生词本
         function addToVocabulary(word) {
             let vocab = JSON.parse(localStorage.getItem('yixiaokang_vocab') || '[]');
             if (!vocab.includes(word)) {
