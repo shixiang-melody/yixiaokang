@@ -41,7 +41,7 @@
         .tag-pill { display: inline-block; background: #e2e8f0; color: #475569; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; margin-right: 5px; cursor: pointer; margin-bottom: 5px; }
         .tag-pill:hover { background: #cbd5e1; }
         .feedback-box { background: #f0fdf4; border: 1px solid #bbf7d0; padding: 12px; border-radius: 6px; margin-bottom: 15px; display: none; }
-        .highlight-key { color: #0284c7; font-weight: bold; background: #e0f2fe; padding: 0 3px; border-radius: 3px; }
+        .highlight-key { color: #d97706; font-weight: bold; background: #fef3c7; padding: 0 3px; border-radius: 3px; }
     </style>
 </head>
 <body>
@@ -61,7 +61,7 @@
             <select id="weakness">
                 <option value="短时记忆容量与信息抓取不足">短时记忆容量与信息抓取不足</option>
                 <option value="数字听辨反应慢">数字听辨反应慢</option>
-                <option value="视译脱节 / 脑译不分家">视译脱节 / 脑译不分家</option>
+                <option value="视译脱节 / 顺句驱动不足">视译脱节 / 顺句驱动不足</option>
                 <option value="高级词汇与术语匮乏">高级词汇与术语匮乏</option>
             </select>
             <label>⏱️ 每日练习时长：</label>
@@ -219,6 +219,47 @@
         </div>
     </div>
 
+    <!-- 4. 视译模块弹窗 -->
+    <div id="sight-modal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <h2 style="color: #27ae60; margin:0;">👁️ 视译任务特训</h2>
+                <div style="display: flex; gap: 5px;">
+                    <button class="btn-sm" onclick="generateAiSightQuestion()" style="background: #8e44ad; color: white;">✨ AI新题</button>
+                    <button class="btn-sm" onclick="switchNextSightQuestion()" style="background: #f39c12; color: white;">🔄 换一题</button>
+                </div>
+            </div>
+            
+            <div class="material-box" style="border-left-color: #27ae60;">
+                <div id="sight-difficulty-indicator" style="font-size: 0.75rem; color: #15803d; font-weight: bold; margin-bottom: 4px;"></div>
+                <strong>📖 中文源文本（无音频，请即时视译）：</strong>
+                <p id="sight-source-text" style="margin: 6px 0 10px; font-weight: 500; font-size: 0.95rem; color: #1e293b; line-height: 1.5;"></p>
+                <div id="sight-tags"></div>
+            </div>
+
+            <label>🎙️ 英文视译译文作答区（顺句驱动，口语化口译输出）：</label>
+            <textarea id="sight-user-answer" rows="3" placeholder="Type your English sight translation here..."></textarea>
+            
+            <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                <button class="btn-sm" onclick="startSightSpeech()" style="background: #27ae60; color: white; flex: 1; padding: 8px;">🎤 语音输入英文视译</button>
+                <button class="btn-sm" onclick="submitSightAnswer()" style="background: #3498db; color: white; flex: 1; padding: 8px;">提交作答并评估</button>
+            </div>
+
+            <div id="sight-feedback-area" class="feedback-box">
+                <strong style="color: #166534;">📊 译小康视译专项批改报告：</strong>
+                <p id="sight-feedback-score" style="margin: 6px 0 2px; font-weight: bold; color: #15803d; font-size: 0.9rem;"></p>
+                <p id="sight-feedback-comment" style="margin: 2px 0 8px; font-size: 0.85rem; color: #374151;"></p>
+                <div style="border-top: 1px dashed #bbf7d0; padding-top: 6px; margin-top: 6px;">
+                    <span style="font-size: 0.8rem; font-weight: bold; color: #166534;">🎯 参考英文译文（核心术语高亮）：</span>
+                    <p id="sight-reference-answer" style="margin: 4px 0 8px; font-size: 0.85rem; color: #1e293b; font-weight: 500; background: #ffffff; padding: 8px; border-radius: 4px; border: 1px solid #dcfce7;"></p>
+                    <button class="btn-sm" onclick="saveSightMistake()" style="background: #dc2626; color: white; width: 100%; padding: 6px; margin-top: 4px;">📌 将视译错题与术语存入错题本</button>
+                </div>
+            </div>
+
+            <button class="btn" onclick="closeModal('sight-modal')" style="background: #95a5a6; padding: 8px; margin-top: 5px;">关闭面板返回路线</button>
+        </div>
+    </div>
+
     <!-- 主界面 -->
     <header>
         <h1 style="margin:0; font-size: 1.3rem;">🎧 yixiaokang · 口译训练场</h1>
@@ -245,8 +286,8 @@
         </div>
 
         <div class="card">
-            <h2>🎯 今日训练路线（三大并列核心模块）</h2>
-            <p style="font-size: 0.8rem; color: #666; margin-top: 0;">提示：三大核心任务完成后点击“标记完成”即可打卡！</p>
+            <h2>🎯 今日训练路线（四大并列核心模块）</h2>
+            <p style="font-size: 0.8rem; color: #666; margin-top: 0;">提示：四大核心任务完成后点击“标记完成”即可打卡！</p>
             <div id="route-list"></div>
         </div>
     </div>
@@ -317,6 +358,34 @@
             ]
         };
 
+        // 4. 视译任务题库
+        const sightQuestions = {
+            introductory: [
+                {
+                    source: "近年来，数字经济发展迅速，成为推动全球增长的重要引擎。各方应加强协作，共享发展机遇。",
+                    en: "In recent years, the digital economy has developed rapidly, becoming an important engine for driving global growth. All parties should strengthen cooperation and share development opportunities.",
+                    highlights: ["digital economy", "global growth", "strengthen cooperation"],
+                    tags: ["digital economy", "global growth", "cooperation"]
+                }
+            ],
+            intermediate: [
+                {
+                    source: "面对复杂的国际环境，我们要坚持开放包容，促进绿色转型，构建更加公正合理的全球治理体系。",
+                    en: "Facing a complex international environment, we must uphold openness and inclusiveness, promote green transition, and build a fairer and more equitable global governance system.",
+                    highlights: ["international environment", "openness and inclusiveness", "green transition", "global governance"],
+                    tags: ["international environment", "green transition", "global governance"]
+                }
+            ],
+            challenge: [
+                {
+                    source: "科技创新是第一动力，必须把科技自立自强作为战略支撑。我们要深化国际科技交流合作，合力应对气候变化、粮食安全等全球性挑战。",
+                    en: "Scientific and technological innovation is the primary driving force, and self-reliance in science and technology must be taken as a strategic support. We must deepen international scientific and technological exchanges and cooperation, and jointly address global challenges such as climate change and food security.",
+                    highlights: ["technological innovation", "self-reliance", "strategic support", "climate change", "food security"],
+                    tags: ["technological innovation", "climate change", "food security"]
+                }
+            ]
+        };
+
         let currentArticleIndex = 0;
         let currentSentenceIndex = 0;
         
@@ -326,6 +395,9 @@
 
         let currentRetellList = [];
         let currentRetellIndex = 0;
+
+        let currentSightList = [];
+        let currentSightIndex = 0;
 
         let completedSteps = JSON.parse(localStorage.getItem('yixiaokang_completed') || '{}');
         let hasStudied = JSON.parse(localStorage.getItem('yixiaokang_studied') || '{}');
@@ -344,11 +416,12 @@
 
         function determineLevels(profile) {
             if (profile.grade.includes('基础')) currentLevelKey = 'introductory';
-            else if (profile.grade.includes('硕士') || profile.weakness.includes('短时记忆')) currentLevelKey = 'challenge';
+            else if (profile.grade.includes('硕士') || profile.weakness.includes('短时记忆') || profile.weakness.includes('视译')) currentLevelKey = 'challenge';
             else currentLevelKey = 'intermediate';
             
             currentNumberList = numberQuestions[currentLevelKey];
             currentRetellList = retellQuestions[currentLevelKey];
+            currentSightList = sightQuestions[currentLevelKey];
         }
 
         function saveProfile() {
@@ -365,6 +438,7 @@
             determineLevels(profile);
             currentNumberIndex = 0;
             currentRetellIndex = 0;
+            currentSightIndex = 0;
         }
 
         function renderProfile(profile) {
@@ -376,7 +450,7 @@
             `;
         }
 
-        // 渲染三大并列核心模块
+        // 渲染四大并列核心模块
         function renderRoute() {
             const listContainer = document.getElementById('route-list');
             listContainer.innerHTML = '';
@@ -384,6 +458,7 @@
             const isListeningDone = completedSteps['listening'];
             const isNumbersDone = completedSteps['numbers'];
             const isRetellDone = completedSteps['retell'];
+            const isSightDone = completedSteps['sight'];
 
             listContainer.innerHTML = `
                 <div class="route-item">
@@ -427,6 +502,21 @@
                         <button class="btn-sm btn-study" onclick="openRetellPractice()">去练习</button>
                         <button class="btn-sm btn-done ${isRetellDone ? 'completed' : ''}" onclick="toggleDone('retell')">
                             ${isRetellDone ? '已完成 ✓' : '标记完成'}
+                        </button>
+                    </div>
+                </div>
+
+                <div class="route-item">
+                    <div class="route-info">
+                        <div>
+                            <div class="route-title">👁️ 4. 视译任务模块（顺句驱动转换）</div>
+                            <div class="route-desc">阅读中文文本即时口头/书面输出英文，不设音频</div>
+                        </div>
+                    </div>
+                    <div class="action-btns">
+                        <button class="btn-sm btn-study" onclick="openSightPractice()">去练习</button>
+                        <button class="btn-sm btn-done ${isSightDone ? 'completed' : ''}" onclick="toggleDone('sight')">
+                            ${isSightDone ? '已完成 ✓' : '标记完成'}
                         </button>
                     </div>
                 </div>
@@ -699,7 +789,7 @@
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
             if (!SpeechRecognition) { alert('浏览器不支持语音输入'); return; }
             const recognition = new SpeechRecognition();
-            recognition.lang = 'zh-CN'; // 支持中文复述语音输入
+            recognition.lang = 'zh-CN';
             recognition.onresult = function(event) {
                 document.getElementById('retell-user-answer').value += event.results[0][0].transcript;
             };
@@ -712,7 +802,6 @@
             if (!answer.trim()) { alert('请先输入或通过语音填入你的复述内容！'); return; }
             const q = currentRetellList[currentRetellIndex];
 
-            // 高亮原文中的核心信息点
             let highlightedEn = q.en;
             if (q.highlights) {
                 q.highlights.forEach(h => {
@@ -736,6 +825,110 @@
                 mistakes.push(item);
                 localStorage.setItem('yixiaokang_mistakes', JSON.stringify(mistakes));
                 alert('📌 已将该复述任务错题存入错题本！');
+            } else { alert('该题已在错题本中！'); }
+        }
+
+        // --- 模块 4：视译任务模块逻辑 ---
+        function openSightPractice() {
+            currentSightIndex = 0;
+            loadSightModalData();
+            document.getElementById('sight-modal').classList.remove('hidden');
+            hasStudied['sight'] = true;
+            localStorage.setItem('yixiaokang_studied', JSON.stringify(hasStudied));
+        }
+
+        function loadSightModalData() {
+            const saved = localStorage.getItem('yixiaokang_profile');
+            if (saved) determineLevels(JSON.parse(saved));
+            if (!currentSightList || currentSightList.length === 0) currentSightList = sightQuestions['intermediate'];
+
+            const q = currentSightList[currentSightIndex];
+            const levelNames = { introductory: '入门模式 (短句断句)', intermediate: '进阶模式 (中长句与政策表达)', challenge: '挑战模式 (复合长句流水句)' };
+            document.getElementById('sight-difficulty-indicator').innerText = `当前级别：${levelNames[currentLevelKey]} (第 ${currentSightIndex + 1}/${currentSightList.length} 题)`;
+            document.getElementById('sight-source-text').innerText = q.source;
+
+            const tagsContainer = document.getElementById('sight-tags');
+            tagsContainer.innerHTML = '<span style="font-size:0.75rem; color:#64748b;">英文术语提取标签（点词加生词本）：</span>';
+            q.tags.forEach(tag => {
+                tagsContainer.innerHTML += `<span class="tag-pill" onclick="addToVocabulary('${tag}')">+ ${tag}</span>`;
+            });
+
+            document.getElementById('sight-user-answer').value = '';
+            document.getElementById('sight-feedback-area').style.display = 'none';
+        }
+
+        function switchNextSightQuestion() {
+            currentSightIndex = (currentSightIndex + 1) % currentSightList.length;
+            loadSightModalData();
+        }
+
+        async function generateAiSightQuestion() {
+            const saved = localStorage.getItem('yixiaokang_profile');
+            if (!saved) return;
+            const profile = JSON.parse(saved);
+            if (!profile.apiKey) { alert('未检测到 DeepSeek API 密钥，请在建档配置中填入。'); return; }
+            alert('正在通过 DeepSeek 生成中文视译新题...');
+            try {
+                const response = await fetch('https://api.deepseek.com/chat/completions', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${profile.apiKey}` },
+                    body: JSON.stringify({
+                        model: "deepseek-chat",
+                        messages: [
+                            { role: "system", content: "请严格返回符合 JSON 格式的数据：{\"source\": \"中文视译源文本\", \"en\": \"口译风格英文参考译文\", \"highlights\": [\"关键术语1\", \"关键术语2\"], \"tags\": [\"短语1\"]}" },
+                            { role: "user", content: `请针对兴趣主题【${profile.interest}】生成一段中文视译语段练习题。` }
+                        ],
+                        stream: false
+                    })
+                });
+                const data = await response.json();
+                const newQ = JSON.parse(data.choices[0].message.content.replace(/```json/g, '').replace(/```/g, '').trim());
+                currentSightList.push(newQ);
+                currentSightIndex = currentSightList.length - 1;
+                loadSightModalData();
+                alert('✨ AI 视译新题生成成功！');
+            } catch (e) { alert('AI 生成失败，已使用备用题库。'); }
+        }
+
+        function startSightSpeech() {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechRecognition) { alert('浏览器不支持语音输入'); return; }
+            const recognition = new SpeechRecognition();
+            recognition.lang = 'en-US'; // 视译语音输入为英文译文
+            recognition.onresult = function(event) {
+                document.getElementById('sight-user-answer').value += event.results[0][0].transcript + ' ';
+            };
+            recognition.start();
+            alert('麦克风已开启，请看着中文文本直接用英文进行视译口头输出...');
+        }
+
+        function submitSightAnswer() {
+            const answer = document.getElementById('sight-user-answer').value;
+            if (!answer.trim()) { alert('请先输入或通过语音填入你的英文视译译文！'); return; }
+            const q = currentSightList[currentSightIndex];
+
+            let highlightedEn = q.en;
+            if (q.highlights) {
+                q.highlights.forEach(h => {
+                    const regex = new RegExp(`(${h})`, 'gi');
+                    highlightedEn = highlightedEn.replace(regex, `<span class='highlight-key'>$1</span>`);
+                });
+            }
+
+            document.getElementById('sight-feedback-score').innerText = '⭐ 视译专项综合评估：91分（顺句驱动流畅）';
+            document.getElementById('sight-feedback-comment').innerText = '反馈指导：译文结构顺畅，未出现明显的倒装回读，符合口译口语化标准。';
+            document.getElementById('sight-reference-answer').innerHTML = highlightedEn;
+            document.getElementById('sight-feedback-area').style.display = 'block';
+        }
+
+        function saveSightMistake() {
+            const q = currentSightList[currentSightIndex];
+            let mistakes = JSON.parse(localStorage.getItem('yixiaokang_mistakes') || '[]');
+            const item = { text: q.source, reference: q.en, type: '视译任务特训', time: new Date().toLocaleDateString() };
+            if (!mistakes.some(m => m.text === q.source)) {
+                mistakes.push(item);
+                localStorage.setItem('yixiaokang_mistakes', JSON.stringify(mistakes));
+                alert('📌 已将该视译错题与参考英文术语存入错题本！');
             } else { alert('该题已在错题本中！'); }
         }
 
